@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es" data-theme="neumorphism">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vault</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Command Palette (Ctrl/Cmd+K) -->
+      <div id="palette-overlay" class="palette-overlay hidden">
+        <div class="palette">
+          <div class="palette-search">
+            <span class="icon">❯_</span>
+            <input id="palette-input" type="text" placeholder="Buscar comandos..." autocomplete="off" />
+            <kbd>Ctrl K</kbd>
+          </div>
+          <div id="palette-results" class="palette-results"></div>
+          <div class="palette-footer">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+            <span><kbd>Enter</kbd> copiar</span>
+            <span><kbd>Esc</kbd> cerrar</span>
+          </div>
+        </div>
+      </div>
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="sidebar-logo">
+            <img src="./appicon.png" alt="Vault" />
+          </div>
+          <div class="brand">
+            <span class="brand-mark">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M8 5L16 12L8 19"
+                  stroke="#4fc8ff"
+                  stroke-width="2.6"
+                  stroke-linecap="square"
+                  stroke-linejoin="miter"
+                />
+              </svg>
+            </span>
+            <span class="brand-word">VAULT<small>COMMAND&nbsp;CENTER</small></span>
+          </div>
+          <nav class="nav">
+            <button class="nav-item active" data-view="dashboard">Panel</button>
+            <button class="nav-item" data-view="commands">Comandos</button>
+            <button class="nav-item" data-view="groups">Grupos</button>
+          </nav>
+          <button id="open-palette-btn" class="palette-hint">
+            <span>❯ Buscar comandos…</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+        </aside>
+        <main class="content">
+          <section id="view-dashboard" class="view active">
+            <header class="view-header">
+              <h1>Panel</h1>
+            </header>
+            <div id="dashboard-stats" class="stats-grid"></div>
+            <div class="grid-2 dashboard-main">
+              <div class="panel">
+                <h2>Últimos copiados</h2>
+                <div id="recent-copies-list" class="quick-list"></div>
+              </div>
+              <div class="panel">
+                <h2>Favoritos</h2>
+                <div id="favorites-list" class="quick-list"></div>
+              </div>
+            </div>
+            <div class="panel dashboard-orphans-panel hidden" id="orphans-panel">
+              <h2>Sin grupo</h2>
+              <p class="panel-hint">Comandos sin asignar. Asígnales un grupo para organizarlos.</p>
+              <div id="orphans-list" class="quick-list"></div>
+            </div>
+          </section>
+          <section id="view-commands" class="view">
+            <header class="view-header">
+              <h1>Comandos</h1>
+              <button class="btn primary new-command-btn">+ Nuevo comando</button>
+            </header>
+            <div id="commands-list" class="command-list full"></div>
+          </section>
+          <section id="view-groups" class="view">
+            <header class="view-header">
+              <h1>Grupos</h1>
+              <button id="new-group-btn" class="btn primary">+ Nuevo grupo</button>
+            </header>
+            <div id="groups-list" class="project-list full"></div>
+          </section>
+        </main>
+      </div>
+      <!-- Command editor modal -->
+      <div id="command-editor-overlay" class="palette-overlay hidden">
+        <div class="palette editor-modal">
+          <h3 id="editor-title">Nuevo comando</h3>
+          <div class="editor-body">
+            <label>Nombre<input id="ed-name" type="text" placeholder="Ejecutar pruebas" /></label>
+            <label>Descripción<textarea id="ed-description" rows="1" placeholder="Opcional"></textarea></label>
+            <label>Comando<textarea id="ed-command" rows="1" placeholder="go test ./..."></textarea></label>
+            <label class="field-block">
+              Grupo
+              <div class="custom-select" id="ed-group-select">
+                <input type="hidden" id="ed-group" value="" />
+                <button
+                  type="button"
+                  class="custom-select-trigger"
+                  id="ed-group-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                >
+                  <span class="custom-select-value" id="ed-group-label">(ninguno)</span>
+                  <span class="custom-select-chevron" aria-hidden="true"></span>
+                </button>
+                <ul class="custom-select-menu" id="ed-group-menu" role="listbox" hidden></ul>
+              </div>
+            </label>
+            <label class="checkbox-row"><input id="ed-favorite" type="checkbox" /> Favorito</label>
+          </div>
+          <div class="param-actions">
+            <button id="ed-cancel" class="btn ghost">Cancelar</button>
+            <button id="ed-save" class="btn primary">Guardar</button>
+          </div>
+        </div>
+      </div>
+      <!-- Group editor modal -->
+      <div id="group-editor-overlay" class="palette-overlay hidden">
+        <div class="palette editor-modal">
+          <h3 id="group-editor-title">Nuevo grupo</h3>
+          <div class="editor-body">
+            <label>Nombre<input id="gr-name" type="text" placeholder="Git" /></label>
+            <label>Descripción<textarea id="gr-description" rows="1" placeholder="Opcional"></textarea></label>
+          </div>
+          <div class="param-actions">
+            <button id="gr-cancel" class="btn ghost">Cancelar</button>
+            <button id="gr-save" class="btn primary">Guardar</button>
+          </div>
+        </div>
+      </div>
+      <!-- Alert / Confirm modal (reemplaza alert()/confirm() nativos) -->
+      <div id="confirm-overlay" class="palette-overlay hidden">
+        <div class="palette confirm-modal">
+          <div class="confirm-icon" id="confirm-icon">!</div>
+          <p id="confirm-message" class="confirm-message"></p>
+          <div class="param-actions">
+            <button id="confirm-cancel" class="btn ghost hidden">Cancelar</button>
+            <button id="confirm-ok" class="btn primary">Aceptar</button>
+          </div>
+        </div>
+      </div>
+      <div id="toast" class="toast hidden"></div>
+      <div id="app-tooltip" class="app-tooltip hidden" role="tooltip"></div>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
