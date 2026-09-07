@@ -21,6 +21,7 @@ wailsjs/
 .vscode/
 .idea/
 docs
+.atl
 *.swp
 *.swo
 

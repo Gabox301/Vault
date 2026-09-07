@@ -525,12 +525,21 @@ function wireCommandEditor() {
     .forEach((btn) => btn.addEventListener('click', () => openCommandEditor(null)));
   document.getElementById('ed-cancel').addEventListener('click', closeCommandEditor);
   document.getElementById('command-editor-overlay').addEventListener('click', (e) => {
+    // Ignorar el click residual tras elegir una opción del select (menú fixed
+    // fuera del modal). Se consume aquí mismo: el flag se limpia justo cuando
+    // se usa, no antes por un timer, así que da igual cuánto tarde el click
+    // retargeteado en llegar.
+    if (window.__vaultSelectJustPicked) {
+      window.__vaultSelectJustPicked = false;
+      return;
+    }
     if (e.target.id === 'command-editor-overlay') closeCommandEditor();
   });
   document.getElementById('ed-save').addEventListener('click', saveCommandFromEditor);
 }
 
 function openCommandEditor(cmd) {
+  window.__vaultSelectJustPicked = false;
   state.editingCommandId = cmd ? cmd.id : null;
   document.getElementById('editor-title').textContent = cmd ? 'Editar comando' : 'Nuevo comando';
   document.getElementById('ed-name').value = cmd?.name || '';
@@ -574,10 +583,18 @@ function populateGroupSelect(selectedId) {
     li.dataset.value = opt.value;
     li.textContent = opt.label;
     if (opt.value === selected.value) li.setAttribute('aria-selected', 'true');
-    li.addEventListener('click', (e) => {
+    // pointerdown: selecciona y cierra. Flag evita que el click residual cierre el modal
+    // (el menú es position:fixed y puede quedar fuera del cuadro del editor).
+    li.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       setGroupSelectValue(opt.value, opt.label);
+      window.__vaultSelectJustPicked = true;
       closeGroupSelect();
+      // El flag NO se resetea con un timer: el click "residual" (retargeteado
+      // al overlay porque la opción ya está oculta cuando el navegador hace el
+      // hit-test del mouseup) puede tardar más que un setTimeout(0) en llegar.
+      // Se limpia al consumirlo en el listener de click del overlay.
     });
     menu.appendChild(li);
   });
@@ -651,9 +668,11 @@ function wireGroupSelect() {
     else closeGroupSelect();
   });
 
-  document.addEventListener('click', (e) => {
+  // Cerrar al pulsar fuera (mousedown para que coincida con la selección de opciones)
+  document.addEventListener('mousedown', (e) => {
     const menu = document.getElementById('ed-group-menu');
-    if (wrap.contains(e.target) || (menu && menu.contains(e.target))) return;
+    if (!menu || menu.hidden) return;
+    if (wrap.contains(e.target) || menu.contains(e.target)) return;
     closeGroupSelect();
   });
 
