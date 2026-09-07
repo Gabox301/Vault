@@ -29,12 +29,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   wirePalette();
   wireCommandEditor();
   wireGroupEditor();
+  wireGroupViewer();
   wireConfirmModal();
   wireGroupSelect();
   wireTooltip();
   wireAutosizeFields();
-  // Tema fijo: neumorphism
-  document.documentElement.setAttribute('data-theme', 'neumorphism');
   await refreshAll();
 });
 
@@ -77,12 +76,25 @@ async function copyText(text) {
   }
 }
 
-async function copyCommand(cmd) {
+async function copyCommand(cmd, triggerBtn) {
   const ok = await copyText(cmd.command);
   if (ok) {
+    if (triggerBtn) flashCopyButton(triggerBtn);
     recordCopy(cmd);
     renderDashboard();
   }
+}
+
+function flashCopyButton(btn) {
+  if (!btn) return;
+  btn.classList.add('is-copied');
+  const prev = btn.textContent;
+  btn.textContent = 'Copiado';
+  clearTimeout(btn._copyTimer);
+  btn._copyTimer = setTimeout(() => {
+    btn.classList.remove('is-copied');
+    btn.textContent = prev || 'Copiar';
+  }, 650);
 }
 
 // ---------------------------------------------------------------------
@@ -188,6 +200,9 @@ function openConfirmModal({ message, danger = false, showCancel = false, okLabel
   icon.textContent = danger ? '!' : 'i';
   cancelBtn.classList.toggle('hidden', !showCancel);
   okBtn.textContent = okLabel;
+  // Mismo estilo destructivo que el botón Eliminar del listado
+  okBtn.classList.toggle('primary', !danger);
+  okBtn.classList.toggle('danger', danger);
 
   overlay.classList.remove('hidden');
   okBtn.focus();
@@ -276,15 +291,24 @@ function wirePalette() {
 
 function openPalette() {
   const overlay = document.getElementById('palette-overlay');
+  const palette = overlay.querySelector('.palette');
   const input = document.getElementById('palette-input');
   overlay.classList.remove('hidden');
+  if (palette) {
+    palette.classList.remove('palette-enter');
+    void palette.offsetWidth; // reflow para reiniciar animación
+    palette.classList.add('palette-enter');
+  }
   input.value = '';
   input.focus();
   renderPaletteResults('');
 }
 
 function closePalette() {
-  document.getElementById('palette-overlay').classList.add('hidden');
+  const overlay = document.getElementById('palette-overlay');
+  const palette = overlay.querySelector('.palette');
+  overlay.classList.add('hidden');
+  if (palette) palette.classList.remove('palette-enter');
 }
 
 function renderPaletteResults(query) {
@@ -329,7 +353,7 @@ function appendPaletteSection(container, label, items) {
   items.forEach((cmd) => {
     const row = document.createElement('div');
     row.className = 'palette-item';
-    row.innerHTML = `<span data-tooltip="${escapeHtml(cmd.name)}">${cmd.favorite ? '★ ' : '▶ '}${escapeHtml(truncate(cmd.name, 36))}</span><span class="cmd" data-tooltip="${escapeHtml(cmd.command)}">${escapeHtml(truncate(cmd.command, 40))}</span>`;
+    row.innerHTML = `<span${tooltipAttr(cmd.name, 36)}>${cmd.favorite ? '★ ' : '▶ '}${escapeHtml(truncate(cmd.name, 36))}</span><span class="cmd"${tooltipAttr(cmd.command, 40)}>${escapeHtml(truncate(cmd.command, 40))}</span>`;
     row.addEventListener('click', () => {
       closePalette();
       copyCommand(cmd);
@@ -387,7 +411,7 @@ function renderDashboard() {
       command: h.command,
       id: h.id,
     })),
-    'Aún no has copiado ningún comando. Usa Copiar en Comandos o Ctrl K.',
+    'historial vacío — copiá un comando con Ctrl K o el botón Copiar',
     { allowCopyOnly: true },
   );
 
@@ -395,7 +419,7 @@ function renderDashboard() {
   renderQuickList(
     document.getElementById('favorites-list'),
     favs,
-    'Aún no hay favoritos. Márcalos en la vista Comandos.',
+    '0 favoritos — marcá comandos en la vista Comandos',
     { allowCopyOnly: true, showStar: true },
   );
 
@@ -406,6 +430,11 @@ function renderDashboard() {
       orphansPanel.classList.add('hidden');
     } else {
       orphansPanel.classList.remove('hidden');
+      const hint = orphansPanel.querySelector('.panel-hint');
+      if (hint) {
+        hint.classList.add('log-style');
+        hint.textContent = `${orphans.length} comando${orphans.length === 1 ? '' : 's'} sin asignar — asignalos a un grupo`;
+      }
       renderQuickList(document.getElementById('orphans-list'), orphans, '', { allowCopyOnly: true, showEdit: true });
     }
   }
@@ -422,7 +451,7 @@ function renderQuickList(container, items, emptyText, opts = {}) {
   if (!container) return;
   container.innerHTML = '';
   if (!items.length) {
-    if (emptyText) container.innerHTML = `<div class="empty-hint">${emptyText}</div>`;
+    if (emptyText) container.innerHTML = `<div class="empty-hint log-style">${emptyText}</div>`;
     return;
   }
   items.forEach((item) => {
@@ -433,20 +462,22 @@ function renderQuickList(container, items, emptyText, opts = {}) {
     // Truncado más agresivo: las cards del panel son más estrechas
     row.innerHTML = `
       <div class="command-main">
-        <span class="command-name" data-tooltip="${escapeHtml(displayName)}">${star}<span class="command-name-text">${escapeHtml(truncate(displayName, 28))}</span></span>
-        <span class="command-cmd" data-tooltip="${escapeHtml(item.command || '')}">${escapeHtml(truncate(item.command, 36))}</span>
+        <span class="command-name"${tooltipAttr(displayName, 28)}>${star}<span class="command-name-text">${escapeHtml(truncate(displayName, 28))}</span></span>
+        <span class="command-cmd"${tooltipAttr(item.command || '', 36)}>${escapeHtml(truncate(item.command, 36))}</span>
       </div>
       <div class="row-actions">
         <button class="btn copy-btn small quick-copy">Copiar</button>
         ${opts.showEdit && item.id != null ? '<button class="btn edit-btn small quick-edit">Editar</button>' : ''}
       </div>`;
-    row.querySelector('.quick-copy').addEventListener('click', async () => {
+    row.querySelector('.quick-copy').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
       // Prefer live command object if still in state
       const live = item.id != null ? state.commands.find((c) => c.id === item.id) : null;
-      if (live) await copyCommand(live);
+      if (live) await copyCommand(live, btn);
       else {
         const ok = await copyText(item.command);
         if (ok) {
+          flashCopyButton(btn);
           recordCopy(item);
           renderDashboard();
         }
@@ -468,48 +499,79 @@ function renderQuickList(container, items, emptyText, opts = {}) {
 // ---------------------------------------------------------------------
 
 function renderCommandsView() {
-  renderCommandList(document.getElementById('commands-list'), state.commands, 'Aún no hay comandos. Crea el primero.');
+  renderCommandList(
+    document.getElementById('commands-list'),
+    state.commands,
+    'ningún comando registrado — creá el primero con + Nuevo comando',
+  );
 }
 
 function renderCommandList(container, commands, emptyText) {
   container.innerHTML = '';
   if (!commands.length) {
-    container.innerHTML = `<div class="empty-hint">${emptyText}</div>`;
+    container.innerHTML = `<div class="empty-hint log-style">${emptyText}</div>`;
     return;
   }
   commands.forEach((cmd) => {
     const row = document.createElement('div');
     row.className = 'command-row';
+    row.dataset.commandId = String(cmd.id);
     const group = formatGroupBadges(commandGroupNames(cmd));
-    const nameTitle = escapeHtml(cmd.name || '');
-    const cmdTitle = escapeHtml(cmd.command || '');
-    const descTitle = escapeHtml(cmd.description || '');
+    const isFav = !!cmd.favorite;
     row.innerHTML = `
       <div class="command-main">
-        <span class="command-name" data-tooltip="${nameTitle}">${cmd.favorite ? '<span class="star">★</span>' : ''}<span class="command-name-text">${escapeHtml(truncate(cmd.name, 48))}</span></span>
-        <span class="command-cmd" data-tooltip="${cmdTitle}">${escapeHtml(truncate(cmd.command, 72))}</span>
-        ${cmd.description ? `<span class="command-desc" data-tooltip="${descTitle}">${escapeHtml(truncate(cmd.description, 64))}</span>` : ''}
+        <span class="command-name"${tooltipAttr(cmd.name, 48)}>${isFav ? '<span class="star">★</span>' : ''}<span class="command-name-text">${escapeHtml(truncate(cmd.name, 48))}</span></span>
+        <span class="command-cmd"${tooltipAttr(cmd.command, 72)}>${escapeHtml(truncate(cmd.command, 72))}</span>
+        ${cmd.description ? `<span class="command-desc"${tooltipAttr(cmd.description, 64)}>${escapeHtml(truncate(cmd.description, 64))}</span>` : ''}
         ${group}
       </div>
       <div class="row-actions">
-        <button class="btn fav-btn small">${cmd.favorite ? 'Quitar favorito' : 'Marcar favorito'}</button>
+        <button class="btn fav-btn small">${isFav ? 'Quitar favorito' : 'Marcar favorito'}</button>
         <button class="btn copy-btn small">Copiar</button>
         <button class="btn edit-btn small">Editar</button>
         <button class="btn danger small del-btn">Eliminar</button>
       </div>`;
-    row.querySelector('.fav-btn').addEventListener('click', async () => {
-      await App().ToggleFavorite(cmd.id);
-      showToast(cmd.favorite ? 'Quitado de favoritos.' : 'Marcado como favorito.', 'info');
-      await refreshAll();
+    row.querySelector('.fav-btn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      const wasFav = !!cmd.favorite;
+      const cmdId = cmd.id;
+      btn.disabled = true;
+      try {
+        await App().ToggleFavorite(cmdId);
+        // Actualizar estado local de inmediato para que el panel refleje el cambio
+        const live = state.commands.find((c) => c.id === cmdId);
+        if (live) live.favorite = !wasFav;
+        showToast(wasFav ? 'Quitado de favoritos.' : 'Marcado como favorito.', 'info');
+        if (!wasFav) btn.classList.add('is-favorited');
+        await refreshAll();
+        if (!wasFav) {
+          requestAnimationFrame(() => {
+            const star = document.querySelector(
+              `#commands-list .command-row[data-command-id="${CSS.escape(String(cmdId))}"] .star`,
+            );
+            if (star) star.classList.add('is-bounce');
+          });
+        }
+      } catch (err) {
+        await showAlert(`No se pudo actualizar el favorito: ${err}`);
+      } finally {
+        btn.disabled = false;
+      }
     });
-    row.querySelector('.copy-btn').addEventListener('click', () => copyCommand(cmd));
+    row.querySelector('.copy-btn').addEventListener('click', (e) => copyCommand(cmd, e.currentTarget));
     row.querySelector('.edit-btn').addEventListener('click', () => openCommandEditor(cmd));
     row.querySelector('.del-btn').addEventListener('click', async () => {
       const ok = await showConfirm('¿Eliminar este comando?', { danger: true });
       if (!ok) return;
-      await App().DeleteCommand(cmd.id);
-      showToast('Comando eliminado.', 'danger');
-      await refreshAll();
+      try {
+        await App().DeleteCommand(cmd.id);
+        showToast('Comando eliminado.', 'danger');
+        await refreshAll();
+      } catch (err) {
+        await showAlert(`No se pudo eliminar el comando: ${err}`);
+      }
     });
     container.appendChild(row);
   });
@@ -559,7 +621,7 @@ function closeCommandEditor() {
 }
 
 // ---------------------------------------------------------------------
-// Custom select (grupo) — estilo neumorphism, sin <select> nativo
+// Custom select (grupo) — sin <select> nativo
 // ---------------------------------------------------------------------
 
 function populateGroupSelect(selectedId) {
@@ -705,12 +767,22 @@ async function saveCommandFromEditor() {
     await showAlert('El nombre y el comando son obligatorios.');
     return;
   }
+  const saveBtn = document.getElementById('ed-save');
   try {
     const wasEditing = !!state.editingCommandId;
     if (wasEditing) {
       await App().UpdateCommand(state.editingCommandId, input);
     } else {
       await App().CreateCommand(input);
+    }
+    // Confirmación momentánea en el botón antes de cerrar
+    if (saveBtn) {
+      const prev = saveBtn.textContent;
+      saveBtn.classList.add('is-saved');
+      saveBtn.textContent = '✓ Guardado';
+      await new Promise((r) => setTimeout(r, 520));
+      saveBtn.classList.remove('is-saved');
+      saveBtn.textContent = prev;
     }
     closeCommandEditor();
     showToast(wasEditing ? 'Comando actualizado.' : 'Comando creado.', 'success');
@@ -728,23 +800,29 @@ function renderGroupsView() {
   const container = document.getElementById('groups-list');
   container.innerHTML = '';
   if (!state.groups.length) {
-    container.innerHTML = '<div class="empty-hint">Aún no hay grupos. Crea uno para organizar tus comandos.</div>';
+    container.innerHTML = '<div class="empty-hint log-style">0 grupos — creá uno para organizar tus comandos</div>';
     return;
   }
   state.groups.forEach((g) => {
-    const count = state.commands.filter((c) => c.groupId === g.id).length;
+    const count = commandsInGroup(g.id).length;
     const row = document.createElement('div');
     row.className = 'project-row';
     const descPart = g.description ? ' · ' + truncate(g.description, 40) : '';
+    const countLabel = `${count} ${count === 1 ? 'comando' : 'comandos'}`;
+    const fullCmdLine = countLabel + (g.description ? ' · ' + g.description : '');
+    // La línea de detalle se considera truncada si la descripción lo está o es muy larga en pantalla
+    const descMax = 40;
     row.innerHTML = `
       <div class="command-main">
-        <span class="command-name" data-tooltip="${escapeHtml(g.name)}"><span class="command-name-text">${escapeHtml(truncate(g.name, 40))}</span></span>
-        <span class="command-cmd" data-tooltip="${escapeHtml(count + (count === 1 ? ' comando' : ' comandos') + (g.description ? ' · ' + g.description : ''))}">${count} ${count === 1 ? 'comando' : 'comandos'}${g.description ? ' · ' + escapeHtml(truncate(g.description, 40)) : ''}</span>
+        <span class="command-name"${tooltipAttr(g.name, 40)}><span class="command-name-text">${escapeHtml(truncate(g.name, 40))}</span></span>
+        <span class="command-cmd"${tooltipAttr(fullCmdLine, countLabel.length + (g.description ? 3 + descMax : 0) + 1)}">${countLabel}${g.description ? ' · ' + escapeHtml(truncate(g.description, descMax)) : ''}</span>
       </div>
       <div class="row-actions">
+        <button class="btn view-btn small">Ver</button>
         <button class="btn edit-btn small">Editar</button>
         <button class="btn danger small del-btn">Eliminar</button>
       </div>`;
+    row.querySelector('.view-btn').addEventListener('click', () => openGroupViewer(g));
     row.querySelector('.edit-btn').addEventListener('click', () => openGroupEditor(g));
     row.querySelector('.del-btn').addEventListener('click', async () => {
       const ok = await showConfirm('¿Eliminar este grupo? Sus comandos quedarán sin asignar.', {
@@ -795,6 +873,7 @@ async function saveGroupFromEditor() {
     await showAlert('El nombre es obligatorio.');
     return;
   }
+  const saveBtn = document.getElementById('gr-save');
   try {
     const wasEditing = !!state.editingGroupId;
     if (wasEditing) {
@@ -802,12 +881,73 @@ async function saveGroupFromEditor() {
     } else {
       await App().CreateGroup(input);
     }
+    if (saveBtn) {
+      const prev = saveBtn.textContent;
+      saveBtn.classList.add('is-saved');
+      saveBtn.textContent = '✓ Guardado';
+      await new Promise((r) => setTimeout(r, 520));
+      saveBtn.classList.remove('is-saved');
+      saveBtn.textContent = prev;
+    }
     closeGroupEditor();
     showToast(wasEditing ? 'Grupo actualizado.' : 'Grupo creado.', 'success');
     await refreshAll();
   } catch (err) {
     await showAlert(`No se pudo guardar el grupo: ${err}`);
   }
+}
+
+// ---------------------------------------------------------------------
+// Viewer de grupo (comandos del grupo)
+// ---------------------------------------------------------------------
+
+function wireGroupViewer() {
+  document.getElementById('group-viewer-close').addEventListener('click', closeGroupViewer);
+  document.getElementById('group-viewer-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'group-viewer-overlay') closeGroupViewer();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeGroupViewer();
+  });
+}
+
+function closeGroupViewer() {
+  document.getElementById('group-viewer-overlay').classList.add('hidden');
+}
+
+function openGroupViewer(group) {
+  document.getElementById('group-viewer-title').textContent = group ? `Comandos · ${group.name}` : 'Comandos';
+  const container = document.getElementById('group-viewer-list');
+  const cmds = group ? commandsInGroup(group.id) : [];
+  container.innerHTML = '';
+  if (!cmds.length) {
+    container.innerHTML = '<div class="empty-hint log-style">este grupo no tiene comandos</div>';
+  } else {
+    cmds.forEach((cmd) => {
+      const row = document.createElement('div');
+      row.className = 'quick-row';
+      const isFav = !!cmd.favorite;
+      row.innerHTML = `
+        <div class="command-main">
+          <span class="command-name"${tooltipAttr(cmd.name, 40)}>${isFav ? '<span class="star">★</span>' : ''}<span class="command-name-text">${escapeHtml(truncate(cmd.name, 40))}</span></span>
+          <span class="command-cmd"${tooltipAttr(cmd.command, 64)}>${escapeHtml(truncate(cmd.command, 64))}</span>
+          ${cmd.description ? `<span class="command-desc"${tooltipAttr(cmd.description, 48)}>${escapeHtml(truncate(cmd.description, 48))}</span>` : ''}
+        </div>
+        <div class="row-actions">
+          <button class="btn copy-btn small viewer-copy">Copiar</button>
+        </div>`;
+      row.querySelector('.viewer-copy').addEventListener('click', (e) => copyCommand(cmd, e.currentTarget));
+      container.appendChild(row);
+    });
+  }
+  document.getElementById('group-viewer-overlay').classList.remove('hidden');
+}
+
+/** Comandos que pertenecen a un grupo (groupId único o groupIds[]). */
+function commandsInGroup(groupId) {
+  return state.commands.filter(
+    (c) => c.groupId === groupId || (Array.isArray(c.groupIds) && c.groupIds.includes(groupId)),
+  );
 }
 
 // ---------------------------------------------------------------------
@@ -827,6 +967,8 @@ function wireTooltip() {
       if (!el) return;
       const text = el.getAttribute('data-tooltip');
       if (!text) return;
+      // Solo mostrar si el contenido está realmente truncado
+      if (!elementIsTruncated(el)) return;
       showAppTooltip(el, text);
     },
     true,
@@ -917,6 +1059,34 @@ function truncate(str, max) {
   return s.slice(0, Math.max(0, max - 1)) + '…';
 }
 
+/**
+ * Atributo data-tooltip solo si el texto supera max (está truncado).
+ * @returns {string} '' o ' data-tooltip="..."'
+ */
+function tooltipAttr(fullText, max) {
+  const s = String(fullText ?? '');
+  if (s.length <= max) return '';
+  return ` data-tooltip="${escapeHtml(s)}"`;
+}
+
+/**
+ * Confirma truncado real en el DOM (ellipsis CSS o texto con … de truncate()).
+ * Evita mostrar tooltip cuando el atributo quedó de más o el layout no corta.
+ */
+function elementIsTruncated(el) {
+  if (!el) return false;
+  const tip = el.getAttribute('data-tooltip');
+  if (!tip) return false;
+  // Overflow por CSS (text-overflow: ellipsis)
+  if (el.scrollWidth > el.clientWidth + 1) return true;
+  const textNode = el.querySelector('.command-name-text') || el;
+  const visible = (textNode.textContent || '').replace(/\s+/g, ' ').trim();
+  if (visible.endsWith('…') || visible.endsWith('...')) return true;
+  const cleanedVisible = visible.replace(/^[★▶❯]\s*/, '');
+  if (tip.length > cleanedVisible.length) return true;
+  return tip !== cleanedVisible && tip !== visible;
+}
+
 /** Nombres de grupo de un comando (soporta groupId único o groupIds[]). */
 function commandGroupNames(cmd) {
   if (!cmd) return [];
@@ -939,8 +1109,10 @@ function formatGroupBadges(names, nameMax = 18) {
   if (!names.length) return '';
   const first = escapeHtml(truncate(names[0], nameMax));
   if (names.length === 1) {
-    return `<span class="command-group" data-tooltip="${escapeHtml(names[0])}">${first}</span>`;
+    // Solo tooltip si el nombre del grupo está truncado
+    return `<span class="command-group"${tooltipAttr(names[0], nameMax)}>${first}</span>`;
   }
+  // Varios grupos: el badge "+N" implica info oculta → siempre tooltip con la lista completa
   const extra = names.length - 1;
   const allTitle = escapeHtml(names.join(', '));
   return `<span class="command-groups" data-tooltip="${allTitle}">

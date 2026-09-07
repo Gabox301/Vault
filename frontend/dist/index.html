@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-theme="neumorphism">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +12,7 @@
       <div id="palette-overlay" class="palette-overlay hidden">
         <div class="palette">
           <div class="palette-search">
-            <span class="icon">❯_</span>
+            <span class="icon">❯</span>
             <input id="palette-input" type="text" placeholder="Buscar comandos..." autocomplete="off" />
             <kbd>Ctrl K</kbd>
           </div>
@@ -71,7 +71,7 @@
             </div>
             <div class="panel dashboard-orphans-panel hidden" id="orphans-panel">
               <h2>Sin grupo</h2>
-              <p class="panel-hint">Comandos sin asignar. Asígnales un grupo para organizarlos.</p>
+              <p class="panel-hint log-style">comandos sin asignar — asignalos a un grupo</p>
               <div id="orphans-list" class="quick-list"></div>
             </div>
           </section>
@@ -135,6 +135,18 @@
           <div class="param-actions">
             <button id="gr-cancel" class="btn ghost">Cancelar</button>
             <button id="gr-save" class="btn primary">Guardar</button>
+          </div>
+        </div>
+      </div>
+      <!-- Group viewer modal -->
+      <div id="group-viewer-overlay" class="palette-overlay hidden">
+        <div class="palette editor-modal">
+          <h3 id="group-viewer-title">Comandos del grupo</h3>
+          <div class="editor-body">
+            <div id="group-viewer-list" class="quick-list"></div>
+          </div>
+          <div class="param-actions">
+            <button id="group-viewer-close" class="btn ghost">Cerrar</button>
           </div>
         </div>
       </div>

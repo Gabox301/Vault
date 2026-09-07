@@ -25,6 +25,15 @@
   --font-display: 'Orbitron', 'Rajdhani', sans-serif;
   --font-body: 'Rajdhani', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  /* Neumorphism tokens */
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 12px;
+  --neu-base: var(--bg-elevated);
+  --neu-dark: color-mix(in srgb, black 45%, var(--neu-base));
+  --neu-light: color-mix(in srgb, white 6%, var(--neu-base));
+  --neu-out: 7px 7px 14px var(--neu-dark), -7px -7px 14px var(--neu-light);
+  --neu-in: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
 }
 
 * {
@@ -33,41 +42,13 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--neu-base);
   color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 500;
   overflow: hidden;
   position: relative;
-}
-
-/* ---------- Atmosphere: carbon weave + schematic grid + scanline ---------- */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 500;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.018) 0px,
-    rgba(255, 255, 255, 0.018) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  mix-blend-mode: overlay;
-  opacity: 0.5;
-}
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 499;
-  background:
-    radial-gradient(ellipse at 20% -10%, rgba(79, 200, 255, 0.08), transparent 55%),
-    radial-gradient(ellipse at 100% 110%, rgba(79, 200, 255, 0.05), transparent 50%);
 }
 
 button {
@@ -104,23 +85,12 @@ button {
 
 .sidebar {
   width: 236px;
-  background:
-    linear-gradient(180deg, rgba(79, 200, 255, 0.05), transparent 30%),
-    repeating-linear-gradient(135deg, #0a0e13 0px, #0a0e13 3px, #0b1017 3px, #0b1017 6px);
-  border-right: 1px solid var(--border);
+  background: var(--neu-base);
+  border-right: none;
   display: flex;
   flex-direction: column;
   padding: 18px 14px;
   position: relative;
-}
-.sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -1px;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, var(--accent-glow) 40%, transparent 80%);
 }
 
 .sidebar-logo {
@@ -132,7 +102,7 @@ button {
   width: 128px;
   height: 128px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px var(--accent-glow));
+  filter: none;
 }
 
 .brand {
@@ -206,16 +176,6 @@ button {
     color 0.15s ease,
     background 0.15s ease;
 }
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.15s ease;
-}
 .nav-item:hover {
   background: var(--bg-hover);
   color: var(--text);
@@ -224,10 +184,6 @@ button {
   background: linear-gradient(90deg, var(--accent-dim), rgba(79, 200, 255, 0.03) 70%);
   color: var(--accent);
   border-color: var(--border-bright);
-}
-.nav-item.active::before {
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .palette-hint {
@@ -419,15 +375,6 @@ button {
   max-width: 100%;
   overflow: hidden;
 }
-.panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: var(--cut);
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
 .panel h2 {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -509,12 +456,14 @@ button {
   color: #000;
   filter: none;
 }
-.btn.copy-btn {
+.btn.copy-btn,
+.btn.view-btn {
   background: var(--success-dim);
   border-color: var(--success);
   color: var(--success);
 }
-.btn.copy-btn:hover {
+.btn.copy-btn:hover,
+.btn.view-btn:hover {
   background: var(--success);
   color: #000;
   filter: none;
@@ -698,15 +647,6 @@ button {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-}
-.palette::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 16px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), transparent);
 }
 .palette-search {
   display: flex;
@@ -1209,94 +1149,101 @@ kbd {
     0 0 20px var(--accent-glow);
 }
 
-/* =====================================================================
-   TEMA: NEUMORPHISM (único tema activo)
-   ===================================================================== */
-
-/* ---------- TEMA: NEUMORPHISM SUAVE ---------- */
-html[data-theme='neumorphism'] {
-  --r-lg: 22px;
-  --r-md: 16px;
-  --r-sm: 12px;
-  --neu-base: var(--bg-elevated);
-  --neu-dark: color-mix(in srgb, black 45%, var(--neu-base));
-  --neu-light: color-mix(in srgb, white 6%, var(--neu-base));
-  --neu-out: 7px 7px 14px var(--neu-dark), -7px -7px 14px var(--neu-light);
-  --neu-in: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
-}
-html[data-theme='neumorphism'] body::before,
-html[data-theme='neumorphism'] body::after {
-  opacity: 0;
-}
-html[data-theme='neumorphism'] body {
-  background: var(--neu-base);
-}
-html[data-theme='neumorphism'] .sidebar {
+/* ---------- Neumorphism (tema único) ---------- */
+.sidebar {
   background: var(--neu-base);
   border-right: none;
   box-shadow: var(--neu-out);
   margin: 10px 0 10px 10px;
   border-radius: var(--r-lg);
 }
-html[data-theme='neumorphism'] .sidebar::after {
-  display: none;
-}
-html[data-theme='neumorphism'] .sidebar-logo img {
-  filter: none;
-}
-html[data-theme='neumorphism'] .brand-mark {
+.brand-mark {
   clip-path: none;
   border-radius: var(--r-sm);
   background: var(--neu-base);
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .nav-item {
+.nav-item {
   clip-path: none;
   border-radius: var(--r-sm);
   background: var(--neu-base);
   box-shadow: var(--neu-out);
   border: none;
 }
-html[data-theme='neumorphism'] .nav-item::before {
-  display: none;
-}
-html[data-theme='neumorphism'] .nav-item.active {
-  box-shadow: var(--neu-in);
+.nav-item.active {
+  box-shadow:
+    var(--neu-in),
+    0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 0 16px var(--accent-glow);
   color: var(--accent);
 }
-html[data-theme='neumorphism'] .palette-hint {
+.palette-hint {
   clip-path: none;
   border-radius: var(--r-sm);
   background: var(--neu-base);
   box-shadow: var(--neu-out);
   border: none;
 }
-html[data-theme='neumorphism'] .panel {
+.panel {
   clip-path: none;
   border-radius: var(--r-lg);
   background: var(--neu-base);
   border: none;
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .stat-card {
+.stat-card {
+  background: var(--neu-base);
+  border: none;
+  border-radius: var(--r-md);
+  box-shadow: var(--neu-out);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text-dim);
+  opacity: 0.55;
+}
+.stat-card.stat-accent::before {
+  background: var(--accent);
+  opacity: 1;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.stat-card.stat-warning::before {
+  background: var(--warning);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 181, 69, 0.45);
+}
+.stat-card.stat-info::before {
+  background: var(--steel);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(127, 168, 207, 0.4);
+}
+.stat-card.stat-danger::before {
+  background: var(--danger);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 91, 86, 0.4);
+}
+.stat-card.stat-muted::before {
+  background: var(--text-dim);
+  opacity: 0.4;
+}
+.quick-row {
   background: var(--neu-base);
   border: none;
   border-radius: var(--r-md);
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .quick-row {
-  background: var(--neu-base);
-  border: none;
-  border-radius: var(--r-md);
-  box-shadow: var(--neu-out);
-}
-html[data-theme='neumorphism'] .quick-row:hover {
+.quick-row:hover {
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .panel::before {
-  display: none;
-}
-html[data-theme='neumorphism'] .btn {
+.btn {
   clip-path: none;
   border-radius: var(--r-md);
   background: var(--neu-base);
@@ -1304,124 +1251,135 @@ html[data-theme='neumorphism'] .btn {
   box-shadow: var(--neu-out);
   color: var(--text);
 }
-html[data-theme='neumorphism'] .btn:active {
+.btn:active {
   box-shadow: var(--neu-in);
   transform: none;
 }
-html[data-theme='neumorphism'] .btn.primary {
-  color: var(--accent);
+.btn.primary {
+  color: #fff;
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
-html[data-theme='neumorphism'] .btn.primary:hover {
+.btn.primary:hover {
   background: var(--accent);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn.ghost {
+.btn.ghost {
   color: var(--text-dim);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent);
 }
-html[data-theme='neumorphism'] .btn.ghost:hover {
+.btn.ghost:hover {
   background: var(--text);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn.danger {
+.btn.danger {
   color: var(--danger);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--danger) 40%, transparent);
 }
-html[data-theme='neumorphism'] .btn.danger:hover {
+.btn.danger:hover {
   background: var(--danger);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn.fav-btn {
+.btn.fav-btn {
   color: var(--warning);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--warning) 40%, transparent);
 }
-html[data-theme='neumorphism'] .btn.fav-btn:hover {
+.btn.fav-btn:hover {
   background: var(--warning);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn.copy-btn {
+.btn.copy-btn,
+.btn.view-btn {
   color: var(--success);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--success) 40%, transparent);
 }
-html[data-theme='neumorphism'] .btn.copy-btn:hover {
+.btn.copy-btn:hover,
+.btn.view-btn:hover {
   background: var(--success);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn.edit-btn {
+.btn.edit-btn {
   color: var(--accent);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
-html[data-theme='neumorphism'] .btn.edit-btn:hover {
+.btn.edit-btn:hover {
   background: var(--accent);
   color: #000;
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .btn:hover {
+.btn:hover {
   filter: none;
+}
+.btn:not(.primary):not(.ghost):not(.danger):not(.fav-btn):not(.copy-btn):not(.edit-btn):not(.view-btn):hover {
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .command-row,
-html[data-theme='neumorphism'] .project-row,
-html[data-theme='neumorphism'] .execution-row {
+.command-row,
+.project-row,
+.execution-row {
   background: var(--neu-base);
   border: none;
   border-radius: var(--r-md);
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .command-row:hover,
-html[data-theme='neumorphism'] .project-row:hover,
-html[data-theme='neumorphism'] .execution-row:hover {
+.command-row:hover,
+.project-row:hover,
+.execution-row:hover {
   box-shadow: var(--neu-in);
 }
-html[data-theme='neumorphism'] .status-badge {
+.status-badge {
   clip-path: none;
   border-radius: var(--r-sm);
   border: none;
 }
-html[data-theme='neumorphism'] .palette,
-html[data-theme='neumorphism'] .editor-modal,
-html[data-theme='neumorphism'] .confirm-modal {
+.palette,
+.editor-modal,
+.confirm-modal {
   clip-path: none;
   border-radius: var(--r-lg);
   background: var(--neu-base);
   border: none;
-  box-shadow: var(--neu-out);
+  box-shadow:
+    var(--neu-out),
+    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
 }
-html[data-theme='neumorphism'] .palette::before {
-  display: none;
+.palette-item.selected,
+.palette-item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--neu-base));
+  border-left-color: var(--accent);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    0 0 12px color-mix(in srgb, var(--accent-glow) 55%, transparent);
 }
-html[data-theme='neumorphism'] .editor-modal input,
-html[data-theme='neumorphism'] .editor-modal textarea,
-html[data-theme='neumorphism'] .param-field input,
-html[data-theme='neumorphism'] .param-field textarea {
+.editor-modal input,
+.editor-modal textarea,
+.param-field input,
+.param-field textarea {
   background: var(--neu-base);
   border: none;
   border-radius: var(--r-sm);
   box-shadow: var(--neu-in);
   color: var(--text);
 }
-html[data-theme='neumorphism'] .editor-modal input:focus,
-html[data-theme='neumorphism'] .editor-modal textarea:focus,
-html[data-theme='neumorphism'] .param-field input:focus,
-html[data-theme='neumorphism'] .param-field textarea:focus {
+.editor-modal input:focus,
+.editor-modal textarea:focus,
+.param-field input:focus,
+.param-field textarea:focus {
   outline: none;
   border: none;
   box-shadow:
@@ -1429,97 +1387,97 @@ html[data-theme='neumorphism'] .param-field textarea:focus {
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-/* Custom select — neumorphism */
-html[data-theme='neumorphism'] .custom-select-trigger {
+/* Custom select */
+.custom-select-trigger {
   background: var(--neu-base);
   border: none;
   border-radius: var(--r-sm);
   box-shadow: var(--neu-in);
   color: var(--text);
 }
-html[data-theme='neumorphism'] .custom-select-trigger:focus {
+.custom-select-trigger:focus {
   border: none;
   box-shadow:
     var(--neu-in),
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
 }
-html[data-theme='neumorphism'] .custom-select-menu {
+.custom-select-menu {
   background: var(--neu-base);
   border: none;
   border-radius: var(--r-md);
   box-shadow: var(--neu-out);
   padding: 8px;
 }
-html[data-theme='neumorphism'] .custom-select-option {
+.custom-select-option {
   border-radius: var(--r-sm);
   border-left: none;
   margin-bottom: 2px;
 }
-html[data-theme='neumorphism'] .custom-select-option:hover {
+.custom-select-option:hover {
   background: color-mix(in srgb, var(--accent) 12%, var(--neu-base));
   box-shadow: var(--neu-in);
   border-left: none;
 }
-html[data-theme='neumorphism'] .custom-select-option.is-selected {
+.custom-select-option.is-selected {
   background: color-mix(in srgb, var(--accent) 16%, var(--neu-base));
   color: var(--accent);
   box-shadow: var(--neu-in);
   border-left: none;
 }
-html[data-theme='neumorphism'] .confirm-icon {
+.confirm-icon {
   clip-path: none;
   border-radius: 50%;
   background: var(--neu-base);
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .confirm-modal.danger .confirm-icon {
+.confirm-modal.danger .confirm-icon {
   color: var(--danger);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--danger) 40%, transparent);
 }
-html[data-theme='neumorphism'] .toast {
+.toast {
   clip-path: none;
   border-radius: var(--r-md);
   background: var(--neu-base);
   border: none;
   box-shadow: var(--neu-out);
 }
-html[data-theme='neumorphism'] .toast.toast-success {
+.toast.toast-success {
   color: var(--success);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--success) 45%, transparent);
 }
-html[data-theme='neumorphism'] .toast.toast-danger {
+.toast.toast-danger {
   color: var(--danger);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent);
 }
-html[data-theme='neumorphism'] .toast.toast-warning {
+.toast.toast-warning {
   color: var(--warning);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--warning) 45%, transparent);
 }
-html[data-theme='neumorphism'] .toast.toast-info {
+.toast.toast-info {
   color: var(--accent);
   box-shadow:
     var(--neu-out),
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-html[data-theme='neumorphism'] .editor-modal .param-actions {
+.editor-modal .param-actions {
   border-top: none;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent);
   padding-top: 14px;
 }
-html[data-theme='neumorphism'] .palette.editor-modal {
+.palette.editor-modal {
   overflow: hidden;
 }
 
-/* ---------- Tooltip propio (neumorphism) ---------- */
+/* ---------- Tooltip propio ---------- */
 .app-tooltip {
   position: fixed;
   z-index: 10000;
@@ -1546,10 +1504,250 @@ html[data-theme='neumorphism'] .palette.editor-modal {
   opacity: 1;
   transform: translateY(0);
 }
-html[data-theme='neumorphism'] .app-tooltip {
+.app-tooltip {
   border: none;
   border-radius: var(--r-sm);
   background: var(--neu-base);
   box-shadow: var(--neu-out);
   color: var(--text);
+}
+
+/* =====================================================================
+   Focus, reduced motion, micro-interactions, palette hero
+   ===================================================================== */
+
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 14px var(--accent-glow) !important;
+}
+:focus-visible {
+  box-shadow:
+    var(--neu-in, inset 4px 4px 8px transparent),
+    0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent),
+    0 0 16px var(--accent-glow) !important;
+}
+
+/* Palette hero entrance */
+.palette-overlay {
+  transition:
+    opacity 0.22s ease,
+    backdrop-filter 0.22s ease;
+}
+.palette-overlay:not(.hidden) {
+  animation: paletteOverlayIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.palette-overlay.hidden {
+  animation: none;
+}
+@keyframes paletteOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.palette.palette-enter {
+  animation: paletteBoot 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes paletteBoot {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(-10px);
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.01) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.palette.palette-enter {
+  animation: paletteBootNeu 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes paletteBootNeu {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(-10px);
+    box-shadow:
+      7px 7px 14px transparent,
+      -7px -7px 14px transparent,
+      0 0 0 0 transparent,
+      0 0 0 0 transparent;
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.012) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    box-shadow:
+      var(--neu-out),
+      0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 0 28px var(--accent-glow);
+  }
+}
+
+/* Terminal cursor blink on palette icon */
+.palette-search .icon {
+  position: relative;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.palette-search .icon::after {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.12em;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: terminalCursor 1.05s steps(1, end) infinite;
+}
+@keyframes terminalCursor {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Copy flash + pulse */
+.btn.copy-btn.is-copied,
+.btn.quick-copy.is-copied {
+  color: #04121f !important;
+  background: var(--success) !important;
+  box-shadow:
+    0 0 0 1px var(--success),
+    0 0 18px rgba(62, 224, 137, 0.55) !important;
+  animation: copyPulse 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes copyPulse {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.btn.copy-btn.is-copied,
+.btn.quick-copy.is-copied {
+  color: #04121f !important;
+  background: var(--success) !important;
+  box-shadow:
+    var(--neu-in),
+    0 0 0 1px var(--success),
+    0 0 16px rgba(62, 224, 137, 0.5) !important;
+}
+
+/* Favorite star bounce */
+.star.is-bounce {
+  display: inline-block;
+  animation: starBounce 0.48s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: var(--warning);
+}
+@keyframes starBounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.45) rotate(-12deg);
+  }
+  60% {
+    transform: scale(0.92) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.btn.fav-btn.is-favorited {
+  animation: favFlash 0.4s ease;
+}
+@keyframes favFlash {
+  0% {
+    filter: brightness(1);
+  }
+  40% {
+    filter: brightness(1.35);
+    box-shadow:
+      0 0 0 1px var(--warning),
+      0 0 14px rgba(255, 181, 69, 0.5);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Save button confirm state */
+.btn.primary.is-saved {
+  background: var(--success) !important;
+  border-color: var(--success) !important;
+  color: #04121f !important;
+  box-shadow:
+    0 0 0 1px var(--success),
+    0 0 20px rgba(62, 224, 137, 0.5) !important;
+  pointer-events: none;
+}
+.btn.primary.is-saved {
+  background: var(--success) !important;
+  color: #04121f !important;
+  box-shadow:
+    var(--neu-in),
+    0 0 0 1px var(--success),
+    0 0 18px rgba(62, 224, 137, 0.45) !important;
+}
+
+/* Empty state — terminal log voice */
+.empty-hint.log-style {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  padding: 12px 6px;
+  letter-spacing: 0.02em;
+}
+.empty-hint.log-style::before {
+  content: '> ';
+  color: var(--accent);
+}
+.panel-hint.log-style {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+.panel-hint.log-style::before {
+  content: '> ';
+  color: var(--accent);
+}
+
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .palette-search .icon::after {
+    animation: none;
+    opacity: 1;
+  }
 }
