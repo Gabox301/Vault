@@ -1,8 +1,8 @@
 /* Vault — components/panels.css */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: clamp(10px, 1.5cqi, 14px);
   margin-bottom: 22px;
   width: 100%;
   max-width: 100%;
@@ -33,6 +33,11 @@
   background: var(--accent);
   opacity: 1;
   box-shadow: 0 0 10px var(--accent-glow);
+}
+.stat-card.stat-success::before {
+  background: var(--success);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(62, 224, 137, 0.45);
 }
 .stat-card.stat-warning::before {
   background: var(--warning);
@@ -72,6 +77,9 @@
 .stat-card.stat-accent .stat-value {
   color: var(--accent);
 }
+.stat-card.stat-success .stat-value {
+  color: var(--success);
+}
 .stat-card.stat-warning .stat-value {
   color: var(--warning);
 }
@@ -109,6 +117,27 @@
 .panel h2::before {
   content: '▸';
   color: var(--accent);
+}
+.panel-success h2 {
+  color: var(--success);
+}
+.panel-success h2::before {
+  color: var(--success);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--success) 45%, transparent);
+}
+.panel-warning h2 {
+  color: var(--warning);
+}
+.panel-warning h2::before {
+  color: var(--warning);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--warning) 45%, transparent);
+}
+.panel-danger h2 {
+  color: var(--danger);
+}
+.panel-danger h2::before {
+  color: var(--danger);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--danger) 45%, transparent);
 }
 
 .panel-hint {

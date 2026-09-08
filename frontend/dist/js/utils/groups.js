@@ -2,7 +2,7 @@
 // Group-related pure helpers. No DOM, no side effects.
 
 import { groupName, state } from '../core/store.js';
-import { escapeHtml, tooltipAttr, truncate } from './html.js';
+import { escapeHtml, truncate } from './html.js';
 
 /** @param {number|string} groupId */
 export function commandsInGroup(groupId) {
@@ -25,7 +25,7 @@ export function commandGroupNames(cmd) {
 }
 
 /**
- * Render badge(s). If multiple groups: first badge + "+N grupos" with full tooltip.
+ * Render badge(s). If multiple groups: first badge + "+N grupos" con tooltip "Asignado a ...".
  * @param {string[]} names
  * @param {number} [nameMax=18]
  * @returns {string} HTML string (already escaped)
@@ -33,11 +33,12 @@ export function commandGroupNames(cmd) {
 export function formatGroupBadges(names, nameMax = 18) {
   if (!names.length) return '';
   const first = escapeHtml(truncate(names[0], nameMax));
+  const tipSingle = escapeHtml(`Asignado a ${names[0]}`);
   if (names.length === 1) {
-    return `<span class="command-group"${tooltipAttr(names[0], nameMax)}>${first}</span>`;
+    return `<span class="command-group" data-tooltip="${tipSingle}">${first}</span>`;
   }
   const extra = names.length - 1;
-  const allTitle = escapeHtml(names.join(', '));
+  const allTitle = escapeHtml(`Asignado a ${names.join(', ')}`);
   return `<span class="command-groups" data-tooltip="${allTitle}">
     <span class="command-group">${first}</span>
     <span class="command-group command-group-extra">+${extra} grupo${extra === 1 ? '' : 's'}</span>
@@ -46,25 +47,25 @@ export function formatGroupBadges(names, nameMax = 18) {
 
 /**
  * DOM version: append badges to a container (no innerHTML).
+ * Tooltip siempre "Asignado a ..." para feedback claro (pide el panel).
  * @param {HTMLElement} container - e.g. .command-main
  * @param {string[]} names
  * @param {number} [nameMax=18]
  */
 export function appendGroupBadges(container, names, nameMax = 18) {
   if (!container || !names.length) return;
-  // Clean previous badges if any
   container.querySelectorAll('.command-group, .command-groups').forEach((el) => el.remove());
   if (names.length === 1) {
     const badge = document.createElement('span');
     badge.className = 'command-group';
     badge.textContent = truncate(names[0], nameMax);
-    if (names[0].length > nameMax) badge.setAttribute('data-tooltip', names[0]);
+    badge.setAttribute('data-tooltip', `Asignado a ${names[0]}`);
     container.appendChild(badge);
     return;
   }
   const wrap = document.createElement('span');
   wrap.className = 'command-groups';
-  wrap.setAttribute('data-tooltip', names.join(', '));
+  wrap.setAttribute('data-tooltip', `Asignado a ${names.join(', ')}`);
   const first = document.createElement('span');
   first.className = 'command-group';
   first.textContent = truncate(names[0], nameMax);

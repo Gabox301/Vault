@@ -6,26 +6,80 @@ import { copyCommand } from '../services/clipboard.js';
 import { vaultApi } from '../services/vault-api.js';
 import { refreshAutosizeIn } from '../ui/autosize.js';
 import { showAlert, showConfirm } from '../ui/confirm-modal.js';
+import {
+  debounce,
+  getAdaptivePageSize,
+  getOrCreatePaginationEl,
+  paginate,
+  renderPagination,
+} from '../ui/pagination.js';
 import { showToast } from '../ui/toast.js';
 import { commandsInGroup } from '../utils/groups.js';
-import { truncate } from '../utils/html.js';
 
 // ---------------------------------------------------------------------
 // Listado de grupos
 // ---------------------------------------------------------------------
 
+let groupsPage = 0;
+let viewerPage = 0;
+let viewerGroupId = null;
+
+function getGroupsPageSize() {
+  return getAdaptivePageSize({ min: 7, max: 12 });
+}
+function getViewerPageSize() {
+  return getAdaptivePageSize({ min: 5, max: 10 });
+}
+let lastGroupsPageSize = getGroupsPageSize();
+let lastViewerPageSize = getViewerPageSize();
+
+const onGroupsResize = debounce(() => {
+  const newSize = getGroupsPageSize();
+  if (newSize === lastGroupsPageSize) return;
+  lastGroupsPageSize = newSize;
+  const totalPages = Math.max(1, Math.ceil(state.groups.length / newSize));
+  if (groupsPage >= totalPages) groupsPage = Math.max(0, totalPages - 1);
+  if (document.getElementById('view-groups')?.classList.contains('active')) renderGroupsView();
+}, 180);
+window.addEventListener('resize', onGroupsResize);
+
+const onViewerResize = debounce(() => {
+  if (
+    !document.getElementById('group-viewer-overlay') ||
+    document.getElementById('group-viewer-overlay').classList.contains('hidden')
+  )
+    return;
+  const newSize = getViewerPageSize();
+  if (newSize === lastViewerPageSize) return;
+  lastViewerPageSize = newSize;
+  // re-render viewer con grupo actual
+  const title = document.getElementById('group-viewer-title')?.textContent;
+  // extraer grupo por id guardado
+  const gid = viewerGroupId;
+  const group = gid != null ? state.groups.find((g) => g.id === gid) : null;
+  if (group) openGroupViewer(group);
+}, 180);
+window.addEventListener('resize', onViewerResize);
+
 export function renderGroupsView() {
   const container = document.getElementById('groups-list');
   if (!container) return;
+  const pageSize = getGroupsPageSize();
+  lastGroupsPageSize = pageSize;
+  const paginationEl = getOrCreatePaginationEl(container, 'groups-pagination');
+  const { pageItems, totalPages, currentPage } = paginate(state.groups, groupsPage, pageSize);
+  groupsPage = currentPage;
+
   container.innerHTML = '';
   if (!state.groups.length) {
     container.innerHTML = '<div class="empty-hint log-style">0 grupos — creá uno para organizar tus comandos</div>';
+    if (paginationEl) paginationEl.classList.add('hidden');
     return;
   }
 
   const tpl = document.getElementById('tpl-group-row');
 
-  state.groups.forEach((g) => {
+  pageItems.forEach((g) => {
     const count = commandsInGroup(g.id).length;
     const countLabel = `${count} ${count === 1 ? 'comando' : 'comandos'}`;
     const fullCmdLine = countLabel + (g.description ? ' · ' + g.description : '');
@@ -39,13 +93,12 @@ export function renderGroupsView() {
       const nameText = row.querySelector('.command-name-text');
       const cmdEl = row.querySelector('.command-cmd');
 
-      nameText.textContent = truncate(g.name, 40);
-      if (String(g.name).length > 40) nameEl.setAttribute('data-tooltip', g.name);
+      nameText.textContent = g.name;
+      nameEl.setAttribute('data-tooltip', g.name);
 
-      const displayCmd = countLabel + (g.description ? ' · ' + truncate(g.description, descMax) : '');
+      const displayCmd = countLabel + (g.description ? ' · ' + g.description : '');
       cmdEl.textContent = displayCmd;
-      const threshold = countLabel.length + (g.description ? 3 + descMax : 0) + 1;
-      if (fullCmdLine.length > threshold) cmdEl.setAttribute('data-tooltip', fullCmdLine);
+      cmdEl.setAttribute('data-tooltip', fullCmdLine);
     } else {
       row = document.createElement('div');
       row.className = 'project-row';
@@ -62,6 +115,11 @@ export function renderGroupsView() {
       emit('data:changed', { reason: 'delete-group' });
     });
     container.appendChild(row);
+  });
+
+  renderPagination(paginationEl, totalPages, currentPage, (p) => {
+    groupsPage = p;
+    renderGroupsView();
   });
 }
 
@@ -152,12 +210,24 @@ export function openGroupViewer(group) {
   const container = document.getElementById('group-viewer-list');
   if (!container) return;
   const cmds = group ? commandsInGroup(group.id) : [];
+  // reset página si cambió el grupo
+  if (viewerGroupId !== (group?.id ?? null)) {
+    viewerGroupId = group?.id ?? null;
+    viewerPage = 0;
+  }
+  const pageSize = getViewerPageSize();
+  lastViewerPageSize = pageSize;
+  const paginationEl = getOrCreatePaginationEl(container, 'group-viewer-pagination');
+  const { pageItems, totalPages, currentPage } = paginate(cmds, viewerPage, pageSize);
+  viewerPage = currentPage;
+
   container.innerHTML = '';
   if (!cmds.length) {
     container.innerHTML = '<div class="empty-hint log-style">este grupo no tiene comandos</div>';
+    if (paginationEl) paginationEl.classList.add('hidden');
   } else {
     const tpl = document.getElementById('tpl-quick-row');
-    cmds.forEach((cmd) => {
+    pageItems.forEach((cmd) => {
       const isFav = !!cmd.favorite;
       let row;
       if (tpl) {
@@ -168,22 +238,21 @@ export function openGroupViewer(group) {
         const cmdEl = row.querySelector('.command-cmd');
         const descEl = row.querySelector('.command-desc');
 
-        nameText.textContent = truncate(cmd.name, 40);
-        if (String(cmd.name).length > 40) nameEl.setAttribute('data-tooltip', cmd.name);
+        nameText.textContent = cmd.name;
+        nameEl.setAttribute('data-tooltip', cmd.name);
         if (isFav) {
           const star = document.createElement('span');
           star.className = 'star';
           star.textContent = '★';
           nameEl.insertBefore(star, nameText);
         }
-        cmdEl.textContent = truncate(cmd.command, 64);
-        if (String(cmd.command).length > 64) cmdEl.setAttribute('data-tooltip', cmd.command);
+        cmdEl.textContent = cmd.command;
+        cmdEl.setAttribute('data-tooltip', cmd.command);
         if (cmd.description) {
-          descEl.textContent = truncate(cmd.description, 48);
-          if (String(cmd.description).length > 48) descEl.setAttribute('data-tooltip', cmd.description);
+          descEl.textContent = cmd.description;
+          descEl.setAttribute('data-tooltip', cmd.description);
           descEl.classList.remove('hidden');
         }
-        // Ocultar botón Editar en viewer, mantener solo Copiar
         row.querySelector('.quick-edit')?.remove();
         row.querySelector('.quick-copy').classList.add('viewer-copy');
       } else {
@@ -195,6 +264,10 @@ export function openGroupViewer(group) {
         .querySelector('.quick-copy, .viewer-copy')
         .addEventListener('click', (e) => copyCommand(cmd, e.currentTarget));
       container.appendChild(row);
+    });
+    renderPagination(paginationEl, totalPages, currentPage, (p) => {
+      viewerPage = p;
+      openGroupViewer(group);
     });
   }
   const overlay = document.getElementById('group-viewer-overlay');

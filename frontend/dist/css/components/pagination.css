@@ -1,0 +1,72 @@
+/* Vault — components/pagination.css */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.pagination.hidden {
+  display: none !important;
+}
+
+.pagination-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--surface-panel);
+  border: none;
+  border-radius: var(--r-sm);
+  box-shadow: var(--elevation-out);
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    color 0.12s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  color: var(--text);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: var(--elevation-in);
+}
+
+.pagination-btn.is-active {
+  color: var(--accent);
+  box-shadow:
+    var(--elevation-in),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent-glow) 35%, transparent);
+}
+
+.pagination-ellipsis {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.pagination-info {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-left: 8px;
+}

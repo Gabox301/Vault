@@ -2,7 +2,7 @@
 
 import { setState, state } from '../core/store.js';
 import { copyCommand } from '../services/clipboard.js';
-import { truncate } from '../utils/html.js';
+import { setResponsiveText } from '../utils/html.js';
 
 export function wirePalette() {
   const overlay = document.getElementById('palette-overlay');
@@ -136,13 +136,8 @@ function appendPaletteSection(container, label, items, visible) {
       const cmdEl = row.querySelector('.cmd');
 
       const prefix = cmd.favorite ? '★ ' : '▶ ';
-      nameEl.textContent = prefix + truncate(cmd.name, 36);
-      if (String(cmd.name).length > 36) nameEl.setAttribute('data-tooltip', cmd.name);
-      else nameEl.removeAttribute('data-tooltip');
-
-      cmdEl.textContent = truncate(cmd.command, 40);
-      if (String(cmd.command).length > 40) cmdEl.setAttribute('data-tooltip', cmd.command);
-      else cmdEl.removeAttribute('data-tooltip');
+      setResponsiveText(nameEl, prefix + cmd.name);
+      setResponsiveText(cmdEl, cmd.command);
     } else {
       row = document.createElement('div');
       row.className = 'palette-item';

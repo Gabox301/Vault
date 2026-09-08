@@ -25,10 +25,24 @@ export function tooltipAttr(fullText, max) {
 }
 
 /**
- * DOM helper: set truncated text + tooltip in one go (no innerHTML).
+ * Responsive helper: siempre deja el texto completo en el DOM y confía en
+ * CSS (text-overflow: ellipsis) para el truncado visual. El tooltip se guarda
+ * siempre para que elementIsTruncated() decida dinámicamente según el ancho
+ * real del contenedor (scrollWidth > clientWidth). Así no hay “28/36 chars”
+ * fijo y todo se adapta al tamaño de la ventana.
  * @param {HTMLElement} el
  * @param {string} fullText
- * @param {number} max
+ */
+export function setResponsiveText(el, fullText) {
+  if (!el) return;
+  const full = String(fullText ?? '');
+  el.textContent = full;
+  if (full) el.setAttribute('data-tooltip', full);
+  else el.removeAttribute('data-tooltip');
+}
+
+/**
+ * @deprecated Usar setResponsiveText para responsividad. Mantenido por compat.
  */
 export function setTruncatedText(el, fullText, max) {
   if (!el) return;

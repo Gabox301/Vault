@@ -2,7 +2,7 @@
 // Persists last N copied commands in localStorage (UI feature, not backend data).
 
 const COPY_HISTORY_KEY = 'vault-copy-history';
-const COPY_HISTORY_MAX = 8;
+const COPY_HISTORY_MAX = 10;
 
 export function loadCopyHistory() {
   try {

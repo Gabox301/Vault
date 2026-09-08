@@ -7,15 +7,50 @@ import { vaultApi } from '../services/vault-api.js';
 import { refreshAutosizeIn } from '../ui/autosize.js';
 import { showAlert, showConfirm } from '../ui/confirm-modal.js';
 import { closeGroupSelect, populateGroupSelect } from '../ui/custom-select.js';
+import {
+  debounce,
+  getAdaptivePageSize,
+  getOrCreatePaginationEl,
+  paginate,
+  renderPagination,
+} from '../ui/pagination.js';
 import { showToast } from '../ui/toast.js';
 import { appendGroupBadges, commandGroupNames } from '../utils/groups.js';
-import { truncate } from '../utils/html.js';
 
 // ---------------------------------------------------------------------
 // Listado
 // ---------------------------------------------------------------------
 
+let commandsPage = 0;
+let lastCommandsPageSize = getAdaptivePageSize({ min: 5, max: 12 });
+
+function getCommandsPageSize() {
+  return getAdaptivePageSize({ min: 5, max: 12 });
+}
+
+const onCommandsResize = debounce(() => {
+  const newSize = getCommandsPageSize();
+  if (newSize === lastCommandsPageSize) return;
+  // si cambia el tamaño, re-render con clamp
+  const totalPages = Math.max(1, Math.ceil(state.commands.length / newSize));
+  if (commandsPage >= totalPages) commandsPage = Math.max(0, totalPages - 1);
+  // solo refrescar si la vista está activa
+  if (document.getElementById('view-commands')?.classList.contains('active')) {
+    renderCommandsView();
+  } else {
+    lastCommandsPageSize = newSize;
+  }
+}, 180);
+window.addEventListener('resize', onCommandsResize);
+
 export function renderCommandsView() {
+  const pageSize = getCommandsPageSize();
+  if (pageSize !== lastCommandsPageSize) {
+    // al crecer el alto, puede que la página actual quede fuera
+    lastCommandsPageSize = pageSize;
+  }
+  const totalPages = Math.max(1, Math.ceil(state.commands.length / pageSize));
+  if (commandsPage >= totalPages) commandsPage = Math.max(0, totalPages - 1);
   renderCommandList(
     document.getElementById('commands-list'),
     state.commands,
@@ -25,15 +60,22 @@ export function renderCommandsView() {
 
 function renderCommandList(container, commands, emptyText) {
   if (!container) return;
+  const pageSize = getCommandsPageSize();
+  lastCommandsPageSize = pageSize;
+  const paginationEl = getOrCreatePaginationEl(container, 'commands-pagination');
+  const { pageItems, totalPages, currentPage } = paginate(commands, commandsPage, pageSize);
+  commandsPage = currentPage;
+
   container.innerHTML = '';
   if (!commands.length) {
     container.innerHTML = `<div class="empty-hint log-style">${emptyText}</div>`;
+    if (paginationEl) paginationEl.classList.add('hidden');
     return;
   }
 
   const tpl = document.getElementById('tpl-command-row');
 
-  commands.forEach((cmd) => {
+  pageItems.forEach((cmd) => {
     const names = commandGroupNames(cmd);
     const isFav = !!cmd.favorite;
 
@@ -49,9 +91,9 @@ function renderCommandList(container, commands, emptyText) {
       const descEl = row.querySelector('.command-desc');
       const main = row.querySelector('.command-main');
 
-      // Nombre 48 + estrella
-      nameText.textContent = truncate(cmd.name, 48);
-      if (String(cmd.name).length > 48) nameEl.setAttribute('data-tooltip', cmd.name);
+      // Nombre: texto completo, CSS hace ellipsis según ancho
+      nameText.textContent = cmd.name;
+      nameEl.setAttribute('data-tooltip', cmd.name);
       if (isFav) {
         const star = document.createElement('span');
         star.className = 'star';
@@ -60,14 +102,14 @@ function renderCommandList(container, commands, emptyText) {
         nameEl.insertBefore(star, nameText);
       }
 
-      // Comando 72
-      cmdEl.textContent = truncate(cmd.command, 72);
-      if (String(cmd.command).length > 72) cmdEl.setAttribute('data-tooltip', cmd.command);
+      // Comando
+      cmdEl.textContent = cmd.command;
+      cmdEl.setAttribute('data-tooltip', cmd.command);
 
-      // Descripción 64
+      // Descripción
       if (cmd.description) {
-        descEl.textContent = truncate(cmd.description, 64);
-        if (String(cmd.description).length > 64) descEl.setAttribute('data-tooltip', cmd.description);
+        descEl.textContent = cmd.description;
+        descEl.setAttribute('data-tooltip', cmd.description);
         descEl.classList.remove('hidden');
       }
 
@@ -129,6 +171,11 @@ function renderCommandList(container, commands, emptyText) {
     });
 
     container.appendChild(row);
+  });
+
+  renderPagination(paginationEl, totalPages, currentPage, (p) => {
+    commandsPage = p;
+    renderCommandList(container, commands, emptyText);
   });
 }
 

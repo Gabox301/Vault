@@ -26,6 +26,7 @@
 @import url('./css/components/panels.css') layer(components);
 @import url('./css/components/buttons.css') layer(components);
 @import url('./css/components/lists.css') layer(components);
+@import url('./css/components/pagination.css') layer(components);
 @import url('./css/components/palette.css') layer(components);
 @import url('./css/components/modals.css') layer(components);
 @import url('./css/components/forms.css') layer(components);

@@ -40,6 +40,19 @@
   border-bottom: 1px solid var(--border);
   margin-bottom: 14px;
 }
+.brand-top {
+  justify-content: center;
+  text-align: center;
+  padding: 6px 4px 10px;
+  margin-bottom: 6px;
+  border-bottom: none;
+}
+.brand-top .brand-word {
+  text-align: center;
+}
+.brand-developer {
+  padding-top: 10px;
+}
 .brand-mark {
   width: 30px;
   height: 30px;
@@ -133,8 +146,10 @@
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 28px 36px;
+  padding: clamp(16px, 2.5cqi, 28px) clamp(16px, 3cqi, 36px);
   position: relative;
+  container-type: inline-size;
+  container-name: content;
 }
 
 .view {
@@ -159,7 +174,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 22px;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(16px, 2cqi, 22px);
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
@@ -179,8 +196,8 @@
 
 .grid-2 {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: clamp(16px, 2cqi, 22px);
   width: 100%;
   max-width: 100%;
 }
@@ -189,11 +206,12 @@
 }
 
 @media (max-width: 900px) {
-  .grid-2,
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+@container content (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
   }
 }

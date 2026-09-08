@@ -67,10 +67,13 @@
       <div class="layout">
         <!-- Sidebar -->
         <aside class="sidebar" aria-label="Navegación principal">
+          <div class="brand brand-top" aria-label="Vault Command Center">
+            <span class="brand-word">VAULT<small>COMMAND&nbsp;CENTER</small></span>
+          </div>
           <div class="sidebar-logo" aria-hidden="true">
             <img src="./appicon.png" alt="" width="128" height="128" decoding="async" />
           </div>
-          <div class="brand" aria-label="Vault Command Center">
+          <div class="brand brand-developer" aria-label="Desarrollador Gabriel Ortega">
             <span class="brand-mark" aria-hidden="true">
               <svg
                 viewBox="0 0 24 24"
@@ -88,7 +91,7 @@
                 />
               </svg>
             </span>
-            <span class="brand-word">VAULT<small>COMMAND&nbsp;CENTER</small></span>
+            <span class="brand-word">Desarrollador<small>Gabriel&nbsp;Ortega</small></span>
           </div>
           <nav class="nav" aria-label="Secciones">
             <button type="button" class="nav-item active" data-view="dashboard" aria-current="page">Panel</button>
@@ -116,16 +119,20 @@
             </header>
             <div id="dashboard-stats" class="stats-grid" role="list" aria-label="Estadísticas"></div>
             <div class="grid-2 dashboard-main">
-              <div class="panel" aria-labelledby="recent-heading">
+              <div class="panel panel-success" aria-labelledby="recent-heading">
                 <h2 id="recent-heading">Últimos copiados</h2>
                 <div id="recent-copies-list" class="quick-list" role="list"></div>
               </div>
-              <div class="panel" aria-labelledby="fav-heading">
+              <div class="panel panel-warning" aria-labelledby="fav-heading">
                 <h2 id="fav-heading">Favoritos</h2>
                 <div id="favorites-list" class="quick-list" role="list"></div>
               </div>
             </div>
-            <div class="panel dashboard-orphans-panel hidden" id="orphans-panel" aria-labelledby="orphans-heading">
+            <div
+              class="panel panel-danger dashboard-orphans-panel hidden"
+              id="orphans-panel"
+              aria-labelledby="orphans-heading"
+            >
               <h2 id="orphans-heading">Sin grupo</h2>
               <p class="panel-hint log-style">comandos sin asignar — asignalos a un grupo</p>
               <div id="orphans-list" class="quick-list" role="list"></div>

@@ -56,9 +56,11 @@ func main() {
 	app := wailsapp.New(commandService, groupService)
 
 	if err := wails.Run(&options.App{
-		Title:  "Vault",
-		Width:  1100,
-		Height: 720,
+		Title:     "Vault",
+		Width:     1280,
+		Height:    720,
+		MinWidth:  1280,
+		MinHeight: 720,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
