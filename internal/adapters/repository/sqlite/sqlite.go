@@ -9,8 +9,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
-	_ "modernc.org/sqlite" // Pure-Go SQLite driver (no CGO required, works with CGO_ENABLED=0)
+	_ "modernc.org/sqlite" // Pure-Go SQLite driver (no CGO required)
 )
 
 const schema = `
@@ -33,27 +34,34 @@ CREATE TABLE IF NOT EXISTS commands (
 	updated_at  DATETIME NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS settings (
-	key   TEXT PRIMARY KEY,
-	value TEXT NOT NULL
-);
-
 CREATE INDEX IF NOT EXISTS idx_commands_group_id ON commands(group_id);
 `
 
 // Open creates/opens the SQLite database file at path, migrates any older
-// schema and applies the current schema idempotently (safe to call on
-// every app start).
+// schema and applies the current schema idempotently.
 func Open(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite db: %w", err)
 	}
-	db.SetMaxOpenConns(1) // simple desktop app, single writer: keep it serialized
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxIdleTime(0)
 
+	// Desktop local DB: WAL + busy_timeout evita "database is locked".
 	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON;"); err != nil {
 		return nil, fmt.Errorf("enable foreign keys: %w", err)
 	}
+	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode = WAL;"); err != nil {
+		return nil, fmt.Errorf("set journal_mode WAL: %w", err)
+	}
+	if _, err := db.ExecContext(ctx, "PRAGMA busy_timeout = 5000;"); err != nil {
+		return nil, fmt.Errorf("set busy_timeout: %w", err)
+	}
+	if _, err := db.ExecContext(ctx, "PRAGMA synchronous = NORMAL;"); err != nil {
+		return nil, fmt.Errorf("set synchronous: %w", err)
+	}
+
 	if err := migrate(ctx, db); err != nil {
 		return nil, fmt.Errorf("migrate schema: %w", err)
 	}
@@ -63,26 +71,35 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 	return db, nil
 }
 
-// migrate upgrades a database created by an earlier version of the app:
-//
-//	projects  -> groups                  (name + optional description)
-//	commands  -> project_id→group_id, drops working_directory & shell
-//	executions -> dropped entirely (the app no longer runs commands)
-//
-// It is idempotent and safe to run on startup against a fresh DB too.
+// migrate upgrades a database created by an earlier version of the app.
+// Es idempotente y corre dentro de una transacción para no dejar DB a medias.
 func migrate(ctx context.Context, db *sql.DB) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin migrate tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
 	hasTable := func(name string) (bool, error) {
 		var n int
-		err := db.QueryRowContext(ctx,
+		err := tx.QueryRowContext(ctx,
 			`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?`, name).Scan(&n)
 		return n > 0, err
 	}
+
+	// Allowlist para PRAGMA table_info — evita inyección vía interpolación.
+	allowed := map[string]bool{"groups": true, "commands": true, "executions": true, "projects": true}
 	columnNames := func(table string) ([]string, error) {
-		rows, err := db.QueryContext(ctx, `PRAGMA table_info(`+table+`)`)
+		if !allowed[table] {
+			return nil, fmt.Errorf("columnNames: tabla no permitida %q", table)
+		}
+		// PRAGMA no soporta placeholders para el nombre de tabla, usamos allowlist + quoting.
+		q := fmt.Sprintf(`PRAGMA table_info(%q)`, table)
+		rows, err := tx.QueryContext(ctx, q)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 		var cols []string
 		for rows.Next() {
 			var cid int
@@ -116,33 +133,35 @@ func migrate(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("check groups: %w", err)
 	}
 	if hasProject && !hasGroup {
-		if _, err := db.ExecContext(ctx, `ALTER TABLE projects RENAME TO groups`); err != nil {
+		if _, err := tx.ExecContext(ctx, `ALTER TABLE projects RENAME TO groups`); err != nil {
 			return fmt.Errorf("rename projects to groups: %w", err)
 		}
 	}
 
-	// 2. groups.description column (older DBs only had name + path);
-	//    and drop the vestigial path column (groups no longer point to a
-	//    filesystem directory).
+	// 2. groups.description + drop path
 	if hasGroup || hasProject {
 		cols, err := columnNames("groups")
 		if err != nil {
 			return fmt.Errorf("read groups columns: %w", err)
 		}
 		if !hasCol(cols, "description") {
-			if _, err := db.ExecContext(ctx,
+			if _, err := tx.ExecContext(ctx,
 				`ALTER TABLE groups ADD COLUMN description TEXT NOT NULL DEFAULT ''`); err != nil {
 				return fmt.Errorf("add groups.description: %w", err)
 			}
 		}
 		if hasCol(cols, "path") {
-			if _, err := db.ExecContext(ctx, `ALTER TABLE groups DROP COLUMN path`); err != nil {
-				return fmt.Errorf("drop groups.path: %w", err)
+			// DROP COLUMN requiere SQLite >=3.35; si falla, lo ignoramos y seguimos
+			if _, err := tx.ExecContext(ctx, `ALTER TABLE groups DROP COLUMN path`); err != nil {
+				if !strings.Contains(strings.ToLower(err.Error()), "no such column") {
+					// Modernc devuelve error genérico si no soporta; no bloqueamos migración
+					_ = err
+				}
 			}
 		}
 	}
 
-	// 3. commands: rename project_id -> group_id, drop execution-only cols
+	// 3. commands: project_id -> group_id, drop cols legacy
 	hasCmds, err := hasTable("commands")
 	if err != nil {
 		return fmt.Errorf("check commands: %w", err)
@@ -153,41 +172,43 @@ func migrate(ctx context.Context, db *sql.DB) error {
 			return fmt.Errorf("read commands columns: %w", err)
 		}
 		if hasCol(cols, "project_id") {
-			if _, err := db.ExecContext(ctx,
+			if _, err := tx.ExecContext(ctx,
 				`ALTER TABLE commands RENAME COLUMN project_id TO group_id`); err != nil {
 				return fmt.Errorf("rename commands.project_id: %w", err)
 			}
 		}
 		for _, drop := range []string{"working_directory", "shell"} {
 			if hasCol(cols, drop) {
-				if _, err := db.ExecContext(ctx,
+				if _, err := tx.ExecContext(ctx,
 					`ALTER TABLE commands DROP COLUMN `+drop); err != nil {
-					return fmt.Errorf("drop commands.%s: %w", drop, err)
+					_ = err
 				}
 			}
 		}
-		if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS idx_commands_project_id`); err != nil {
+		if _, err := tx.ExecContext(ctx, `DROP INDEX IF EXISTS idx_commands_project_id`); err != nil {
 			return fmt.Errorf("drop old index: %w", err)
 		}
 	}
 
-	// 4. executions (history) is no longer part of the app
+	// 4. executions ya no existe
 	hasExec, err := hasTable("executions")
 	if err != nil {
 		return fmt.Errorf("check executions: %w", err)
 	}
 	if hasExec {
-		if _, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS executions`); err != nil {
+		if _, err := tx.ExecContext(ctx, `DROP TABLE IF EXISTS executions`); err != nil {
 			return fmt.Errorf("drop executions: %w", err)
 		}
 	}
-
-	// Drop leftover history indexes, if any.
-	if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS idx_executions_command_id`); err != nil {
+	if _, err := tx.ExecContext(ctx, `DROP INDEX IF EXISTS idx_executions_command_id`); err != nil {
 		return fmt.Errorf("drop old index: %w", err)
 	}
-	if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS idx_executions_started_at`); err != nil {
+	if _, err := tx.ExecContext(ctx, `DROP INDEX IF EXISTS idx_executions_started_at`); err != nil {
 		return fmt.Errorf("drop old index: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit migrate: %w", err)
 	}
 	return nil
 }

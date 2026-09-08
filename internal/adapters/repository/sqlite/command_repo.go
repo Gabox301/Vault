@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
-	"Vault/internal/core/domain"
-	"Vault/internal/core/ports"
+	"vault/internal/core/domain"
+	"vault/internal/core/ports"
 )
 
 type commandRepo struct {
@@ -39,7 +40,7 @@ func (r *commandRepo) Create(ctx context.Context, c domain.Command) (domain.Comm
 }
 
 func (r *commandRepo) Update(ctx context.Context, c domain.Command) error {
-	_, err := r.db.ExecContext(ctx, `
+	res, err := r.db.ExecContext(ctx, `
 		UPDATE commands
 		SET group_id = ?, name = ?, description = ?, command = ?, favorite = ?, updated_at = ?
 		WHERE id = ?`,
@@ -48,13 +49,21 @@ func (r *commandRepo) Update(ctx context.Context, c domain.Command) error {
 	if err != nil {
 		return fmt.Errorf("update command %d: %w", c.ID, err)
 	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("update command %d: %w", c.ID, domain.ErrNotFound)
+	}
 	return nil
 }
 
 func (r *commandRepo) Delete(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM commands WHERE id = ?`, id)
+	res, err := r.db.ExecContext(ctx, `DELETE FROM commands WHERE id = ?`, id)
 	if err != nil {
 		return fmt.Errorf("delete command %d: %w", id, err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("delete command %d: %w", id, domain.ErrNotFound)
 	}
 	return nil
 }
@@ -64,42 +73,61 @@ func (r *commandRepo) GetByID(ctx context.Context, id int64) (domain.Command, er
 		SELECT `+commandColumns+` FROM commands WHERE id = ?`, id)
 	c, err := scanCommand(row)
 	if errors.Is(err, sql.ErrNoRows) {
-		return domain.Command{}, fmt.Errorf("command %d not found: %w", id, err)
+		return domain.Command{}, fmt.Errorf("command %d: %w", id, domain.ErrNotFound)
 	}
 	return c, err
 }
 
 func (r *commandRepo) List(ctx context.Context) ([]domain.Command, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT `+commandColumns+` FROM commands ORDER BY name ASC`)
+		SELECT `+commandColumns+` FROM commands ORDER BY favorite DESC, name COLLATE NOCASE ASC`)
 	if err != nil {
 		return nil, fmt.Errorf("list commands: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	return scanCommands(rows)
 }
 
 func (r *commandRepo) ListByGroup(ctx context.Context, groupID int64) ([]domain.Command, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT `+commandColumns+` FROM commands WHERE group_id = ? ORDER BY name ASC`, groupID)
+		SELECT `+commandColumns+` FROM commands WHERE group_id = ? ORDER BY favorite DESC, name COLLATE NOCASE ASC`, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("list commands for group %d: %w", groupID, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	return scanCommands(rows)
 }
 
 func (r *commandRepo) Search(ctx context.Context, query string) ([]domain.Command, error) {
-	like := "%" + query + "%"
+	query = strings.TrimSpace(query)
+	if query == "" {
+		return r.List(ctx)
+	}
+	// Escapar wildcards de LIKE y limitar tamaño
+	if len(query) > 200 {
+		query = query[:200]
+	}
+	esc := escapeLike(query)
+	like := "%" + esc + "%"
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT `+commandColumns+` FROM commands
-		WHERE name LIKE ? OR description LIKE ? OR command LIKE ?
-		ORDER BY favorite DESC, name ASC`, like, like, like)
+		WHERE name LIKE ? ESCAPE '\' COLLATE NOCASE
+		   OR description LIKE ? ESCAPE '\' COLLATE NOCASE
+		   OR command LIKE ? ESCAPE '\' COLLATE NOCASE
+		ORDER BY favorite DESC, name COLLATE NOCASE ASC
+		LIMIT 100`, like, like, like)
 	if err != nil {
 		return nil, fmt.Errorf("search commands: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	return scanCommands(rows)
+}
+
+func escapeLike(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
 }
 
 func scanCommand(row rowScanner) (domain.Command, error) {

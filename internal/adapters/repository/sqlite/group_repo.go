@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"Vault/internal/core/domain"
-	"Vault/internal/core/ports"
+	"vault/internal/core/domain"
+	"vault/internal/core/ports"
 )
 
 type groupRepo struct {
@@ -37,20 +37,28 @@ func (r *groupRepo) Create(ctx context.Context, g domain.Group) (domain.Group, e
 }
 
 func (r *groupRepo) Update(ctx context.Context, g domain.Group) error {
-	_, err := r.db.ExecContext(ctx, `
+	res, err := r.db.ExecContext(ctx, `
 		UPDATE groups SET name = ?, description = ?, updated_at = ? WHERE id = ?`,
 		g.Name, g.Description, g.UpdatedAt, g.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update group %d: %w", g.ID, err)
 	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("update group %d: %w", g.ID, domain.ErrNotFound)
+	}
 	return nil
 }
 
 func (r *groupRepo) Delete(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM groups WHERE id = ?`, id)
+	res, err := r.db.ExecContext(ctx, `DELETE FROM groups WHERE id = ?`, id)
 	if err != nil {
 		return fmt.Errorf("delete group %d: %w", id, err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("delete group %d: %w", id, domain.ErrNotFound)
 	}
 	return nil
 }
@@ -60,18 +68,18 @@ func (r *groupRepo) GetByID(ctx context.Context, id int64) (domain.Group, error)
 		SELECT id, name, description, created_at, updated_at FROM groups WHERE id = ?`, id)
 	g, err := scanGroup(row)
 	if errors.Is(err, sql.ErrNoRows) {
-		return domain.Group{}, fmt.Errorf("group %d not found: %w", id, err)
+		return domain.Group{}, fmt.Errorf("group %d: %w", id, domain.ErrNotFound)
 	}
 	return g, err
 }
 
 func (r *groupRepo) List(ctx context.Context) ([]domain.Group, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id, name, description, created_at, updated_at FROM groups ORDER BY name ASC`)
+		SELECT id, name, description, created_at, updated_at FROM groups ORDER BY name COLLATE NOCASE ASC`)
 	if err != nil {
 		return nil, fmt.Errorf("list groups: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []domain.Group
 	for rows.Next() {

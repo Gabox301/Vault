@@ -1,9 +1,10 @@
+// Package ports defines hexagonal ports (primary and secondary).
 package ports
 
 import (
 	"context"
 
-	"Vault/internal/core/domain"
+	"vault/internal/core/domain"
 )
 
 // GroupService is a primary (driving) port: the use cases around managing

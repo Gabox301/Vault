@@ -1,36 +1,48 @@
+// Package main is the composition root: wires ports to adapters and starts Wails.
 package main
 
 import (
 	"context"
 	"embed"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
-	"Vault/internal/adapters/repository/sqlite"
-	"Vault/internal/adapters/wailsapp"
-	"Vault/internal/core/service"
+	"vault/internal/adapters/repository/sqlite"
+	"vault/internal/adapters/wailsapp"
+	"vault/internal/core/service"
 )
 
 //go:embed frontend/dist
 var assets embed.FS
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
+
 	dbPath, err := dbFilePath()
 	if err != nil {
-		log.Fatalf("resolve database path: %v", err)
+		logger.Error("resolve database path", "err", err)
+		os.Exit(1)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	db, err := sqlite.Open(ctx, dbPath)
+	cancel()
 	if err != nil {
-		log.Fatalf("open database: %v", err)
+		logger.Error("open database", "path", dbPath, "err", err)
+		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Warn("close db", "err", err)
+		}
+	}()
 
 	// --- Adapters (driven side) -------------------------------------------
 	commandRepo := sqlite.NewCommandRepository(db)
@@ -43,7 +55,7 @@ func main() {
 	// --- Driving adapter (Wails) -------------------------------------------
 	app := wailsapp.New(commandService, groupService)
 
-	err = wails.Run(&options.App{
+	if err := wails.Run(&options.App{
 		Title:  "Vault",
 		Width:  1100,
 		Height: 720,
@@ -55,21 +67,20 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
-	})
-	if err != nil {
-		log.Fatalf("run wails app: %v", err)
+	}); err != nil {
+		logger.Error("run wails app", "err", err)
+		os.Exit(1) //nolint:gocritic
 	}
 }
 
-// dbFilePath resolves ~/.Vault/data.db (created on first
-// run), keeping the SQLite file out of the app bundle / working directory.
+// dbFilePath resolves ~/.vault/data.db (created on first run).
 func dbFilePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
 	dir := filepath.Join(home, ".Vault")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
 	return filepath.Join(dir, "data.db"), nil

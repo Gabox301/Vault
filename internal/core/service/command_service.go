@@ -1,38 +1,55 @@
+// Package service implements primary ports (use cases) on top of repository ports.
 package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
-	"Vault/internal/core/domain"
-	"Vault/internal/core/ports"
+	"vault/internal/core/domain"
+	"vault/internal/core/ports"
 )
 
-var ErrInvalidCommand = errors.New("comando: el nombre y el comando son obligatorios")
+const (
+	maxCommandNameLen = 200
+	maxCommandLen     = 10000
+	maxDescriptionLen = 2000
+)
 
 type commandService struct {
 	repo ports.CommandRepository
 }
 
 // NewCommandService builds the CommandService use cases on top of a
-// CommandRepository port. It depends only on the interface, never on a
-// concrete adapter (SQLite, in-memory, etc).
+// CommandRepository port.
 func NewCommandService(repo ports.CommandRepository) ports.CommandService {
 	return &commandService{repo: repo}
 }
 
 func (s *commandService) Create(ctx context.Context, input domain.CommandInput) (domain.Command, error) {
-	if strings.TrimSpace(input.Name) == "" || strings.TrimSpace(input.Command) == "" {
-		return domain.Command{}, ErrInvalidCommand
+	name := strings.TrimSpace(input.Name)
+	cmdStr := strings.TrimSpace(input.Command)
+	if name == "" || cmdStr == "" {
+		return domain.Command{}, domain.ErrInvalidCommand
 	}
-	now := time.Now()
+	if utf8.RuneCountInString(name) > maxCommandNameLen {
+		return domain.Command{}, fmt.Errorf("%w: nombre supera %d caracteres", domain.ErrInvalidCommand, maxCommandNameLen) //nolint:misspell
+	}
+	if utf8.RuneCountInString(cmdStr) > maxCommandLen {
+		return domain.Command{}, fmt.Errorf("%w: comando supera %d caracteres", domain.ErrInvalidCommand, maxCommandLen) //nolint:misspell
+	}
+	if utf8.RuneCountInString(input.Description) > maxDescriptionLen {
+		return domain.Command{}, fmt.Errorf("%w: descripción supera %d caracteres", domain.ErrInvalidCommand, maxDescriptionLen) //nolint:misspell
+	}
+
+	now := time.Now().UTC()
 	cmd := domain.Command{
 		GroupID:     input.GroupID,
-		Name:        strings.TrimSpace(input.Name),
+		Name:        name,
 		Description: strings.TrimSpace(input.Description),
-		Command:     input.Command,
+		Command:     cmdStr,
 		Favorite:    input.Favorite,
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -45,15 +62,24 @@ func (s *commandService) Update(ctx context.Context, id int64, input domain.Comm
 	if err != nil {
 		return domain.Command{}, err
 	}
-	if strings.TrimSpace(input.Name) == "" || strings.TrimSpace(input.Command) == "" {
-		return domain.Command{}, ErrInvalidCommand
+	name := strings.TrimSpace(input.Name)
+	cmdStr := strings.TrimSpace(input.Command)
+	if name == "" || cmdStr == "" {
+		return domain.Command{}, domain.ErrInvalidCommand
 	}
+	if utf8.RuneCountInString(name) > maxCommandNameLen {
+		return domain.Command{}, fmt.Errorf("%w: nombre supera %d caracteres", domain.ErrInvalidCommand, maxCommandNameLen) //nolint:misspell
+	}
+	if utf8.RuneCountInString(cmdStr) > maxCommandLen {
+		return domain.Command{}, fmt.Errorf("%w: comando supera %d caracteres", domain.ErrInvalidCommand, maxCommandLen) //nolint:misspell
+	}
+
 	existing.GroupID = input.GroupID
-	existing.Name = strings.TrimSpace(input.Name)
+	existing.Name = name
 	existing.Description = strings.TrimSpace(input.Description)
-	existing.Command = input.Command
+	existing.Command = cmdStr
 	existing.Favorite = input.Favorite
-	existing.UpdatedAt = time.Now()
+	existing.UpdatedAt = time.Now().UTC()
 
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return domain.Command{}, err
@@ -70,12 +96,7 @@ func (s *commandService) Get(ctx context.Context, id int64) (domain.Command, err
 }
 
 func (s *commandService) List(ctx context.Context) ([]domain.Command, error) {
-	cmds, err := s.repo.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	sortFavoritesFirst(cmds)
-	return cmds, nil
+	return s.repo.List(ctx)
 }
 
 func (s *commandService) ListByGroup(ctx context.Context, groupID int64) ([]domain.Command, error) {
@@ -83,12 +104,7 @@ func (s *commandService) ListByGroup(ctx context.Context, groupID int64) ([]doma
 }
 
 func (s *commandService) Search(ctx context.Context, query string) ([]domain.Command, error) {
-	cmds, err := s.repo.Search(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	sortFavoritesFirst(cmds)
-	return cmds, nil
+	return s.repo.Search(ctx, strings.TrimSpace(query))
 }
 
 func (s *commandService) ToggleFavorite(ctx context.Context, id int64) (domain.Command, error) {
@@ -97,25 +113,9 @@ func (s *commandService) ToggleFavorite(ctx context.Context, id int64) (domain.C
 		return domain.Command{}, err
 	}
 	cmd.Favorite = !cmd.Favorite
-	cmd.UpdatedAt = time.Now()
+	cmd.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, cmd); err != nil {
 		return domain.Command{}, err
 	}
 	return cmd, nil
-}
-
-// sortFavoritesFirst gives favorites priority in search/listing using a
-// simple stable partition (no need to pull in sort for such a small,
-// already-mostly-ordered slice).
-func sortFavoritesFirst(cmds []domain.Command) {
-	favs := make([]domain.Command, 0, len(cmds))
-	rest := make([]domain.Command, 0, len(cmds))
-	for _, c := range cmds {
-		if c.Favorite {
-			favs = append(favs, c)
-		} else {
-			rest = append(rest, c)
-		}
-	}
-	copy(cmds, append(favs, rest...))
 }

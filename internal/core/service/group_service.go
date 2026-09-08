@@ -2,34 +2,41 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
-	"Vault/internal/core/domain"
-	"Vault/internal/core/ports"
+	"vault/internal/core/domain"
+	"vault/internal/core/ports"
 )
 
-var ErrInvalidGroup = errors.New("grupo: el nombre es obligatorio")
+const maxGroupNameLen = 120
 
 type groupService struct {
 	repo ports.GroupRepository
 }
 
 // NewGroupService builds the GroupService use cases on top of a
-// GroupRepository port. It depends only on the interface, never on a
-// concrete adapter (SQLite, in-memory, etc).
+// GroupRepository port.
 func NewGroupService(repo ports.GroupRepository) ports.GroupService {
 	return &groupService{repo: repo}
 }
 
 func (s *groupService) Create(ctx context.Context, input domain.GroupInput) (domain.Group, error) {
-	if strings.TrimSpace(input.Name) == "" {
-		return domain.Group{}, ErrInvalidGroup
+	name := strings.TrimSpace(input.Name)
+	if name == "" {
+		return domain.Group{}, domain.ErrInvalidGroup
 	}
-	now := time.Now()
+	if utf8.RuneCountInString(name) > maxGroupNameLen {
+		return domain.Group{}, fmt.Errorf("%w: nombre supera %d caracteres", domain.ErrInvalidGroup, maxGroupNameLen)
+	}
+	if utf8.RuneCountInString(input.Description) > maxDescriptionLen {
+		return domain.Group{}, fmt.Errorf("%w: descripción supera %d caracteres", domain.ErrInvalidGroup, maxDescriptionLen)
+	}
+	now := time.Now().UTC()
 	g := domain.Group{
-		Name:        strings.TrimSpace(input.Name),
+		Name:        name,
 		Description: strings.TrimSpace(input.Description),
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -42,12 +49,16 @@ func (s *groupService) Update(ctx context.Context, id int64, input domain.GroupI
 	if err != nil {
 		return domain.Group{}, err
 	}
-	if strings.TrimSpace(input.Name) == "" {
-		return domain.Group{}, ErrInvalidGroup
+	name := strings.TrimSpace(input.Name)
+	if name == "" {
+		return domain.Group{}, domain.ErrInvalidGroup
 	}
-	existing.Name = strings.TrimSpace(input.Name)
+	if utf8.RuneCountInString(name) > maxGroupNameLen {
+		return domain.Group{}, fmt.Errorf("%w: nombre supera %d caracteres", domain.ErrInvalidGroup, maxGroupNameLen)
+	}
+	existing.Name = name
 	existing.Description = strings.TrimSpace(input.Description)
-	existing.UpdatedAt = time.Now()
+	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return domain.Group{}, err
 	}

@@ -1,9 +1,10 @@
+// Package ports defines hexagonal ports (primary and secondary).
 package ports
 
 import (
 	"context"
 
-	"Vault/internal/core/domain"
+	"vault/internal/core/domain"
 )
 
 // GroupRepository is the driven port for Group persistence.
@@ -16,7 +17,7 @@ type GroupRepository interface {
 }
 
 // CommandRepository is a driven (secondary) port: the core defines the
-// contract it needs for persistence, and an adapter (e.g. SQLite) fulfils it.
+// contract it needs for persistence, and an adapter (e.g. SQLite) fulfills it.
 type CommandRepository interface {
 	Create(ctx context.Context, cmd domain.Command) (domain.Command, error)
 	Update(ctx context.Context, cmd domain.Command) error
