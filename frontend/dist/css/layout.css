@@ -215,3 +215,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Cuando hay modal, suavizar el glow del fondo para que no se marque el cuadrado */
+body:has(#palette-overlay:not(.hidden)),
+body:has(#command-editor-overlay:not(.hidden)),
+body:has(#group-editor-overlay:not(.hidden)),
+body:has(#group-viewer-overlay:not(.hidden)),
+body:has(#confirm-overlay:not(.hidden)) {
+  --elevation-out: var(--neu-out-soft);
+}
+body:has(#palette-overlay:not(.hidden)) .content,
+body:has(#command-editor-overlay:not(.hidden)) .content,
+body:has(#group-editor-overlay:not(.hidden)) .content,
+body:has(#group-viewer-overlay:not(.hidden)) .content,
+body:has(#confirm-overlay:not(.hidden)) .content {
+  filter: saturate(0.85) brightness(0.92);
+  transition: filter 0.22s ease;
+}
