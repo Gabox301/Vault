@@ -7,15 +7,12 @@ export function populateGroupSelect(selectedId) {
   const hidden = document.getElementById('ed-group');
   const label = document.getElementById('ed-group-label');
   const menu = document.getElementById('ed-group-menu');
-
   const options = [{ value: '', label: '(ninguno)' }].concat(
     state.groups.map((g) => ({ value: String(g.id), label: g.name })),
   );
-
   const selected = options.find((o) => o.value === String(selectedId ?? '')) || options[0];
   hidden.value = selected.value;
   label.textContent = selected.label;
-
   menu.innerHTML = '';
   options.forEach((opt) => {
     const li = document.createElement('li');
@@ -90,7 +87,6 @@ export function wireGroupSelect() {
   const trigger = document.getElementById('ed-group-trigger');
   const wrap = document.getElementById('ed-group-select');
   if (!trigger || !wrap) return;
-
   trigger.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -98,18 +94,15 @@ export function wireGroupSelect() {
     if (menu.hidden) openGroupSelect();
     else closeGroupSelect();
   });
-
   document.addEventListener('mousedown', (e) => {
     const menu = document.getElementById('ed-group-menu');
     if (!menu || menu.hidden) return;
     if (wrap.contains(e.target) || menu.contains(e.target)) return;
     closeGroupSelect();
   });
-
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeGroupSelect();
   });
-
   document.addEventListener(
     'scroll',
     () => {

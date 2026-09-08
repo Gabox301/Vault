@@ -22,19 +22,16 @@
   --danger-dim: #351212;
   --warning: #ffb545;
   --warning-dim: #362609;
-
   /* Shape — flat cut (kept for reference) + neu radii */
   --cut: 12px;
   --cut-sm: 7px;
   --r-lg: 22px;
   --r-md: 16px;
   --r-sm: 12px;
-
   /* Typography */
   --font-display: 'Orbitron', 'Rajdhani', sans-serif;
   --font-body: 'Rajdhani', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
-
   /* Neumorphism — suavizado para no marcar cuadrado tras overlay */
   --neu-base: var(--bg-elevated);
   --neu-dark: color-mix(in srgb, black 38%, var(--neu-base));
@@ -47,14 +44,12 @@
   --neu-out-soft:
     0 4px 12px color-mix(in srgb, var(--neu-dark) 55%, transparent),
     0 1px 4px color-mix(in srgb, black 18%, transparent);
-
   /* Semantic surfaces (theme-aware) */
   --surface-app: var(--neu-base);
   --surface-panel: var(--neu-base);
   --surface-card: var(--neu-base);
   --elevation-out: var(--neu-out);
   --elevation-in: var(--neu-in);
-
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.12s;

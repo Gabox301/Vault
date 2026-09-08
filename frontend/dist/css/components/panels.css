@@ -58,7 +58,6 @@
   background: var(--text-dim);
   opacity: 0.4;
 }
-
 .stat-value {
   font-family: var(--font-display);
   font-size: 26px;
@@ -92,7 +91,6 @@
 .stat-card.stat-muted .stat-value {
   color: var(--text-dim);
 }
-
 .panel {
   background: var(--surface-panel);
   border-radius: var(--r-lg);
@@ -101,7 +99,9 @@
   position: relative;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
+  isolation: isolate;
+  contain: layout;
 }
 .panel h2 {
   font-family: var(--font-mono);
@@ -139,7 +139,6 @@
   color: var(--danger);
   text-shadow: 0 0 8px color-mix(in srgb, var(--danger) 45%, transparent);
 }
-
 .panel-hint {
   margin: -4px 0 12px;
   color: var(--text-dim);
@@ -156,7 +155,6 @@
   content: '> ';
   color: var(--accent);
 }
-
 .dashboard-orphans-panel {
   margin-bottom: 12px;
 }

@@ -39,7 +39,6 @@
   color: #000;
   box-shadow: var(--elevation-in);
 }
-
 .btn.ghost {
   color: var(--text-dim);
   box-shadow:
@@ -51,7 +50,6 @@
   color: #000;
   box-shadow: var(--elevation-in);
 }
-
 .btn.danger {
   color: var(--danger);
   box-shadow:
@@ -63,7 +61,6 @@
   color: #000;
   box-shadow: var(--elevation-in);
 }
-
 .btn.fav-btn {
   color: var(--warning);
   box-shadow:
@@ -75,7 +72,6 @@
   color: #000;
   box-shadow: var(--elevation-in);
 }
-
 .btn.copy-btn,
 .btn.view-btn {
   color: var(--success);
@@ -89,7 +85,6 @@
   color: #000;
   box-shadow: var(--elevation-in);
 }
-
 .btn.edit-btn {
   color: var(--accent);
   box-shadow:

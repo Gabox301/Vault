@@ -8,7 +8,6 @@ let tooltipHideTimer = null;
 export function wireTooltip() {
   const tip = document.getElementById('app-tooltip');
   if (!tip) return;
-
   document.addEventListener(
     'pointerover',
     (e) => {
@@ -21,7 +20,6 @@ export function wireTooltip() {
     },
     true,
   );
-
   document.addEventListener(
     'pointerout',
     (e) => {
@@ -33,7 +31,6 @@ export function wireTooltip() {
     },
     true,
   );
-
   document.addEventListener('scroll', () => hideAppTooltip(), true);
   window.addEventListener('blur', () => hideAppTooltip());
 }

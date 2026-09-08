@@ -2,11 +2,9 @@
 * {
   box-sizing: border-box;
 }
-
 html {
   scrollbar-gutter: stable;
 }
-
 body {
   margin: 0;
   background: var(--surface-app);
@@ -17,17 +15,14 @@ body {
   overflow: hidden;
   position: relative;
 }
-
 button {
   font-family: inherit;
   cursor: pointer;
 }
-
 ::selection {
   background: var(--accent-dim);
   color: var(--accent);
 }
-
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -72,7 +67,6 @@ button {
 .skip-link.hidden:focus {
   transform: translateY(0);
 }
-
 :where(kbd) {
   background: var(--bg-hover);
   border: 1px solid var(--border-bright);

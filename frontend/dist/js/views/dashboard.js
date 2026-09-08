@@ -21,6 +21,7 @@ const dashboardPages = new Map();
 function getDashboardPage(id) {
   return dashboardPages.get(id) ?? 0;
 }
+
 function setDashboardPage(id, page) {
   dashboardPages.set(id, page);
 }
@@ -50,7 +51,6 @@ export function renderDashboard() {
   const favs = state.commands.filter((c) => c.favorite);
   const orphans = state.commands.filter((c) => !c.groupId);
   const groupCount = state.groups.length;
-
   const statsEl = document.getElementById('dashboard-stats');
   if (statsEl) {
     const cards = [
@@ -69,21 +69,18 @@ export function renderDashboard() {
       )
       .join('');
   }
-
   renderQuickList(
     document.getElementById('recent-copies-list'),
     loadCopyHistory().map((h) => ({ name: h.name, command: h.command, id: h.id })),
     'historial vacío — copiá un comando con Ctrl K o el botón Copiar',
     { allowCopyOnly: true, paginationId: 'recent-copies-pagination' },
   );
-
   renderQuickList(
     document.getElementById('favorites-list'),
     favs,
     '0 favoritos — marcá comandos en la vista Comandos',
     { allowCopyOnly: true, showStar: true, paginationId: 'favorites-pagination' },
   );
-
   const orphansPanel = document.getElementById('orphans-panel');
   if (orphansPanel) {
     if (!orphans.length) {
@@ -221,7 +218,6 @@ function renderOrphanList(container, orphans) {
   const { pageItems, totalPages, currentPage } = paginate(orphans, getDashboardPage(paginationId), pageSize);
   // clampear página si cambió la lista
   if (currentPage !== getDashboardPage(paginationId)) setDashboardPage(paginationId, currentPage);
-
   container.innerHTML = '';
   if (!orphans.length) {
     if (paginationEl) paginationEl.classList.add('hidden');
@@ -291,7 +287,6 @@ function renderOrphanList(container, orphans) {
     }
     container.appendChild(row);
   });
-
   renderPagination(paginationEl, totalPages, currentPage, (p) => {
     setDashboardPage(paginationId, p);
     renderOrphanList(container, orphans);
@@ -316,21 +311,17 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
     setDashboardPage(paginationId, page);
   }
   const displayItems = paginated.pageItems;
-
   container.innerHTML = '';
   if (!items.length) {
     if (emptyText) container.innerHTML = `<div class="empty-hint log-style">${emptyText}</div>`;
     if (paginationEl) paginationEl.classList.add('hidden');
     return;
   }
-
   const tpl = document.getElementById('tpl-quick-row');
   let openCommandEditorRef = null;
-
   displayItems.forEach((item) => {
     const displayName = item.name || item.command || '';
     const cmdText = item.command || '';
-
     let row;
     if (tpl) {
       const clone = tpl.content.cloneNode(true);
@@ -338,12 +329,10 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
       const nameEl = row.querySelector('.command-name');
       const nameText = row.querySelector('.command-name-text');
       const cmdEl = row.querySelector('.command-cmd');
-
       // Nombre + comando: texto completo, CSS hace ellipsis según ancho
       nameText.textContent = displayName;
       if (displayName) nameEl.setAttribute('data-tooltip', displayName);
       else nameEl.removeAttribute('data-tooltip');
-
       if (opts.showStar) {
         const star = document.createElement('span');
         star.className = 'star';
@@ -352,12 +341,10 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
         nameEl.insertBefore(star, nameText);
         nameEl.insertBefore(document.createTextNode(' '), nameText);
       }
-
       // Comando
       cmdEl.textContent = cmdText;
       if (cmdText) cmdEl.setAttribute('data-tooltip', cmdText);
       else cmdEl.removeAttribute('data-tooltip');
-
       // Botón Editar
       const editBtn = row.querySelector('.quick-edit');
       if (opts.showEdit && item.id != null) editBtn.classList.remove('hidden');
@@ -368,7 +355,6 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
       row.className = 'quick-row';
       row.innerHTML = `<div class="command-main"><span class="command-name"><span class="command-name-text"></span></span><span class="command-cmd"></span></div><div class="row-actions"><button class="btn copy-btn small quick-copy">Copiar</button></div>`;
     }
-
     row.querySelector('.quick-copy').addEventListener('click', async (e) => {
       const btn = e.currentTarget;
       const live = item.id != null ? state.commands.find((c) => c.id === item.id) : null;
@@ -382,7 +368,6 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
         }
       }
     });
-
     const editBtn = row.querySelector('.quick-edit');
     if (editBtn && !editBtn.classList.contains('hidden')) {
       editBtn.addEventListener('click', async () => {
@@ -394,10 +379,8 @@ export function renderQuickList(container, items, emptyText, opts = {}) {
         if (live) openCommandEditorRef(live);
       });
     }
-
     container.appendChild(row);
   });
-
   if (paginationEl) {
     renderPagination(paginationEl, paginated.totalPages, paginated.currentPage, (p) => {
       setDashboardPage(paginationId, p);

@@ -65,32 +65,26 @@ function renderCommandList(container, commands, emptyText) {
   const paginationEl = getOrCreatePaginationEl(container, 'commands-pagination');
   const { pageItems, totalPages, currentPage } = paginate(commands, commandsPage, pageSize);
   commandsPage = currentPage;
-
   container.innerHTML = '';
   if (!commands.length) {
     container.innerHTML = `<div class="empty-hint log-style">${emptyText}</div>`;
     if (paginationEl) paginationEl.classList.add('hidden');
     return;
   }
-
   const tpl = document.getElementById('tpl-command-row');
-
   pageItems.forEach((cmd) => {
     const names = commandGroupNames(cmd);
     const isFav = !!cmd.favorite;
-
     let row;
     if (tpl) {
       const clone = tpl.content.cloneNode(true);
       row = clone.querySelector('.command-row');
       row.dataset.commandId = String(cmd.id);
-
       const nameEl = row.querySelector('.command-name');
       const nameText = row.querySelector('.command-name-text');
       const cmdEl = row.querySelector('.command-cmd');
       const descEl = row.querySelector('.command-desc');
       const main = row.querySelector('.command-main');
-
       // Nombre: texto completo, CSS hace ellipsis según ancho
       nameText.textContent = cmd.name;
       nameEl.setAttribute('data-tooltip', cmd.name);
@@ -101,21 +95,17 @@ function renderCommandList(container, commands, emptyText) {
         star.setAttribute('aria-hidden', 'true');
         nameEl.insertBefore(star, nameText);
       }
-
       // Comando
       cmdEl.textContent = cmd.command;
       cmdEl.setAttribute('data-tooltip', cmd.command);
-
       // Descripción
       if (cmd.description) {
         descEl.textContent = cmd.description;
         descEl.setAttribute('data-tooltip', cmd.description);
         descEl.classList.remove('hidden');
       }
-
       // Badges (DOM, no innerHTML)
       appendGroupBadges(main, names);
-
       // Botón fav label
       const favBtn = row.querySelector('[data-action="fav"]');
       favBtn.textContent = isFav ? 'Quitar favorito' : 'Marcar favorito';
@@ -126,7 +116,6 @@ function renderCommandList(container, commands, emptyText) {
       row.dataset.commandId = String(cmd.id);
       row.innerHTML = `fallback`;
     }
-
     // Eventos
     row.querySelector('[data-action="fav"]').addEventListener('click', async (e) => {
       e.preventDefault();
@@ -169,10 +158,8 @@ function renderCommandList(container, commands, emptyText) {
         await showAlert(`No se pudo eliminar el comando: ${err}`);
       }
     });
-
     container.appendChild(row);
   });
-
   renderPagination(paginationEl, totalPages, currentPage, (p) => {
     commandsPage = p;
     renderCommandList(container, commands, emptyText);

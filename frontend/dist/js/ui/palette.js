@@ -8,7 +8,6 @@ export function wirePalette() {
   const overlay = document.getElementById('palette-overlay');
   const input = document.getElementById('palette-input');
   if (!overlay || !input) return;
-
   document.addEventListener('keydown', (e) => {
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === 'k') {
@@ -18,15 +17,11 @@ export function wirePalette() {
       closePalette();
     }
   });
-
   document.getElementById('open-palette-btn')?.addEventListener('click', openPalette);
-
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closePalette();
   });
-
   input.addEventListener('input', () => renderPaletteResults(input.value));
-
   input.addEventListener('keydown', (e) => {
     const items = state.paletteVisibleItems;
     if (e.key === 'ArrowDown') {
@@ -78,9 +73,7 @@ function closePalette() {
 function renderPaletteResults(query) {
   const q = query.trim().toLowerCase();
   const results = document.getElementById('palette-results');
-
   const favorites = state.commands.filter((c) => c.favorite);
-
   let matches;
   if (q === '') {
     matches = null;
@@ -92,27 +85,22 @@ function renderPaletteResults(query) {
         (c.description || '').toLowerCase().includes(q),
     );
   }
-
   results.innerHTML = '';
   const visible = [];
-
   if (matches) {
     appendPaletteSection(results, 'RESULTADOS', matches, visible);
   } else {
     if (favorites.length) appendPaletteSection(results, 'FAVORITOS', favorites, visible);
     appendPaletteSection(results, 'TODOS LOS COMANDOS', state.commands.slice(0, 8), visible);
   }
-
   setState({ paletteVisibleItems: visible, paletteSelectedIndex: 0 });
   highlightPaletteSelection();
 }
 
 function appendPaletteSection(container, label, items, visible) {
   if (!items.length) return;
-
   const sectionTpl = document.getElementById('tpl-palette-section');
   const itemTpl = document.getElementById('tpl-palette-item');
-
   if (sectionTpl) {
     const secClone = sectionTpl.content.cloneNode(true);
     const sec = secClone.querySelector('.palette-section-label');
@@ -124,17 +112,14 @@ function appendPaletteSection(container, label, items, visible) {
     sec.textContent = label;
     container.appendChild(sec);
   }
-
   items.forEach((cmd) => {
     visible.push(cmd);
-
     let row;
     if (itemTpl) {
       const clone = itemTpl.content.cloneNode(true);
       row = clone.querySelector('.palette-item');
       const nameEl = row.querySelector('.palette-item-name');
       const cmdEl = row.querySelector('.cmd');
-
       const prefix = cmd.favorite ? '★ ' : '▶ ';
       setResponsiveText(nameEl, prefix + cmd.name);
       setResponsiveText(cmdEl, cmd.command);
@@ -143,7 +128,6 @@ function appendPaletteSection(container, label, items, visible) {
       row.className = 'palette-item';
       row.textContent = `${cmd.favorite ? '★ ' : '▶ '}${truncate(cmd.name, 36)}`;
     }
-
     row.addEventListener('click', () => {
       closePalette();
       copyCommand(cmd);

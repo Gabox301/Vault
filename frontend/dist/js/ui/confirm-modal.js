@@ -9,14 +9,11 @@ export function wireConfirmModal() {
   if (!overlay) return;
   const okBtn = document.getElementById('confirm-ok');
   const cancelBtn = document.getElementById('confirm-cancel');
-
   okBtn.addEventListener('click', () => resolveConfirmModal(true));
   cancelBtn.addEventListener('click', () => resolveConfirmModal(false));
-
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) resolveConfirmModal(false);
   });
-
   document.addEventListener('keydown', (e) => {
     if (overlay.classList.contains('hidden')) return;
     if (e.key === 'Escape') {
@@ -46,7 +43,6 @@ function openConfirmModal({ message, danger = false, showCancel = false, okLabel
   const icon = document.getElementById('confirm-icon');
   const cancelBtn = document.getElementById('confirm-cancel');
   const okBtn = document.getElementById('confirm-ok');
-
   document.getElementById('confirm-message').textContent = message;
   modal.classList.toggle('danger', danger);
   icon.textContent = danger ? '!' : 'i';
@@ -54,11 +50,9 @@ function openConfirmModal({ message, danger = false, showCancel = false, okLabel
   okBtn.textContent = okLabel;
   okBtn.classList.toggle('primary', !danger);
   okBtn.classList.toggle('danger', danger);
-
   overlay.classList.remove('hidden');
   overlay.setAttribute('aria-hidden', 'false');
   okBtn.focus();
-
   return new Promise((resolve) => {
     confirmResolver = resolve;
   });

@@ -27,9 +27,11 @@ let viewerGroupId = null;
 function getGroupsPageSize() {
   return getAdaptivePageSize({ min: 7, max: 12 });
 }
+
 function getViewerPageSize() {
   return getAdaptivePageSize({ min: 5, max: 10 });
 }
+
 let lastGroupsPageSize = getGroupsPageSize();
 let lastViewerPageSize = getViewerPageSize();
 
@@ -69,22 +71,18 @@ export function renderGroupsView() {
   const paginationEl = getOrCreatePaginationEl(container, 'groups-pagination');
   const { pageItems, totalPages, currentPage } = paginate(state.groups, groupsPage, pageSize);
   groupsPage = currentPage;
-
   container.innerHTML = '';
   if (!state.groups.length) {
     container.innerHTML = '<div class="empty-hint log-style">0 grupos — creá uno para organizar tus comandos</div>';
     if (paginationEl) paginationEl.classList.add('hidden');
     return;
   }
-
   const tpl = document.getElementById('tpl-group-row');
-
   pageItems.forEach((g) => {
     const count = commandsInGroup(g.id).length;
     const countLabel = `${count} ${count === 1 ? 'comando' : 'comandos'}`;
     const fullCmdLine = countLabel + (g.description ? ' · ' + g.description : '');
     const descMax = 40;
-
     let row;
     if (tpl) {
       const clone = tpl.content.cloneNode(true);
@@ -92,10 +90,8 @@ export function renderGroupsView() {
       const nameEl = row.querySelector('.command-name');
       const nameText = row.querySelector('.command-name-text');
       const cmdEl = row.querySelector('.command-cmd');
-
       nameText.textContent = g.name;
       nameEl.setAttribute('data-tooltip', g.name);
-
       const displayCmd = countLabel + (g.description ? ' · ' + g.description : '');
       cmdEl.textContent = displayCmd;
       cmdEl.setAttribute('data-tooltip', fullCmdLine);
@@ -104,7 +100,6 @@ export function renderGroupsView() {
       row.className = 'project-row';
       row.innerHTML = 'fallback';
     }
-
     row.querySelector('[data-action="view"]').addEventListener('click', () => openGroupViewer(g));
     row.querySelector('[data-action="edit"]').addEventListener('click', () => openGroupEditor(g));
     row.querySelector('[data-action="del"]').addEventListener('click', async () => {
@@ -116,7 +111,6 @@ export function renderGroupsView() {
     });
     container.appendChild(row);
   });
-
   renderPagination(paginationEl, totalPages, currentPage, (p) => {
     groupsPage = p;
     renderGroupsView();
@@ -220,7 +214,6 @@ export function openGroupViewer(group) {
   const paginationEl = getOrCreatePaginationEl(container, 'group-viewer-pagination');
   const { pageItems, totalPages, currentPage } = paginate(cmds, viewerPage, pageSize);
   viewerPage = currentPage;
-
   container.innerHTML = '';
   if (!cmds.length) {
     container.innerHTML = '<div class="empty-hint log-style">este grupo no tiene comandos</div>';
@@ -237,7 +230,6 @@ export function openGroupViewer(group) {
         const nameText = row.querySelector('.command-name-text');
         const cmdEl = row.querySelector('.command-cmd');
         const descEl = row.querySelector('.command-desc');
-
         nameText.textContent = cmd.name;
         nameEl.setAttribute('data-tooltip', cmd.name);
         if (isFav) {

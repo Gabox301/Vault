@@ -46,7 +46,6 @@
 .custom-select.is-open .custom-select-chevron {
   transform: rotate(180deg);
 }
-
 .custom-select-menu {
   position: absolute;
   left: 0;
@@ -85,7 +84,6 @@
   background: color-mix(in srgb, var(--accent) 16%, var(--surface-panel));
   box-shadow: var(--elevation-in);
 }
-
 .input-with-button {
   display: flex;
   gap: 6px;

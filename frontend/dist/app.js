@@ -18,7 +18,6 @@ import { renderGroupsView, wireGroupEditor, wireGroupViewer } from './js/views/g
 // ---------------------------------------------------------------------
 // Bootstrap
 // ---------------------------------------------------------------------
-
 window.addEventListener('DOMContentLoaded', async () => {
   wireNav();
   wirePalette();
@@ -29,7 +28,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   wireGroupSelect();
   wireTooltip();
   wireAutosizeFields();
-
   // Flujo reactivo centralizado: reemplaza los `await refreshAll()` dispersos
   // del monolito por un único canal. 'copy' solo refresca el panel (no requiere
   // round-trip al backend); cualquier mutación real recarga todo.
@@ -41,7 +39,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     void refreshAll();
   });
-
   await refreshAll();
 });
 

@@ -1,15 +1,11 @@
 /* Vault — style.css — Entry point (ITCSS + @layer orchestration)
  *
- * Arquitectura senior:
+ * Arquitectura:
  *  1. Tokens  — variables, tipografías, elevaciones (single source of truth)
  *  2. Reset   — base mínima
  *  3. Layout  — shell de la app
  *  4. Components — bloques aislados, sin overrides cruzados
  *  5. Utilities / Motion — detalles transversales
- *
- * Neumorphism NO es un archivo aparte con duplicación: es el tema canónico
- * integrado vía tokens --surface-* / --elevation-* . Así se elimina la
- * cascada de ~400 líneas de overrides que tenía el monolito.
  *
  * Sin build step: imports nativos CSS, compatibles con Wails asset server
  * (embed recursivo en main.go:19 frontend/dist).
@@ -21,7 +17,6 @@
 @import url('./css/tokens.css') layer(tokens);
 @import url('./css/reset.css') layer(reset);
 @import url('./css/layout.css') layer(layout);
-
 /* Components — orden alfabético intencional, todos misma capa */
 @import url('./css/components/panels.css') layer(components);
 @import url('./css/components/buttons.css') layer(components);
@@ -33,7 +28,6 @@
 @import url('./css/components/toast.css') layer(components);
 @import url('./css/components/tooltip.css') layer(components);
 @import url('./css/components/output.css') layer(components);
-
 /* Transversales al final para ganar precedencia sin !important */
 @import url('./css/utilities.css') layer(utilities);
 @import url('./css/motion.css') layer(motion);

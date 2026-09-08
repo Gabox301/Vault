@@ -53,7 +53,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
   container.classList.remove('hidden');
   container.setAttribute('role', 'navigation');
   container.setAttribute('aria-label', 'Paginación');
-
   const first = document.createElement('button');
   first.type = 'button';
   first.className = 'pagination-btn';
@@ -62,7 +61,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
   first.disabled = currentPage === 0;
   first.addEventListener('click', () => onChange(0));
   container.appendChild(first);
-
   const prev = document.createElement('button');
   prev.type = 'button';
   prev.className = 'pagination-btn';
@@ -71,7 +69,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
   prev.disabled = currentPage === 0;
   prev.addEventListener('click', () => onChange(currentPage - 1));
   container.appendChild(prev);
-
   // Ventana compacta: 3 números centrados, first/last son botones dedicados
   const maxVisible = 3;
   let startPage, endPage;
@@ -109,7 +106,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
     next.disabled = currentPage >= totalPages - 1;
     next.addEventListener('click', () => onChange(currentPage + 1));
     container.appendChild(next);
-
     const last = document.createElement('button');
     last.type = 'button';
     last.className = 'pagination-btn';
@@ -118,7 +114,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
     last.disabled = currentPage >= totalPages - 1;
     last.addEventListener('click', () => onChange(totalPages - 1));
     container.appendChild(last);
-
     const info = document.createElement('span');
     info.className = 'pagination-info';
     info.textContent = `${currentPage + 1} / ${totalPages}`;
@@ -126,11 +121,9 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
     container.appendChild(info);
     return;
   }
-
   for (let i = startPage; i < endPage; i++) {
     container.appendChild(pageButton(i, currentPage, onChange));
   }
-
   const next = document.createElement('button');
   next.type = 'button';
   next.className = 'pagination-btn';
@@ -139,7 +132,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
   next.disabled = currentPage >= totalPages - 1;
   next.addEventListener('click', () => onChange(currentPage + 1));
   container.appendChild(next);
-
   const last = document.createElement('button');
   last.type = 'button';
   last.className = 'pagination-btn';
@@ -148,7 +140,6 @@ export function renderPagination(container, totalPages, currentPage, onChange) {
   last.disabled = currentPage >= totalPages - 1;
   last.addEventListener('click', () => onChange(totalPages - 1));
   container.appendChild(last);
-
   const info = document.createElement('span');
   info.className = 'pagination-info';
   info.textContent = `${currentPage + 1} / ${totalPages}`;

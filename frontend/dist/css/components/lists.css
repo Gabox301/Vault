@@ -11,7 +11,6 @@
   width: 100%;
   max-width: none;
 }
-
 .command-row,
 .project-row,
 .execution-row {
@@ -31,7 +30,6 @@
 :is(.command-row, .project-row, .execution-row):hover {
   box-shadow: var(--elevation-in);
 }
-
 .command-main {
   display: flex;
   flex-direction: column;
@@ -88,7 +86,6 @@
   color: var(--warning);
   flex-shrink: 0;
 }
-
 .row-actions {
   display: flex;
   gap: 6px;
@@ -98,14 +95,16 @@
   justify-content: flex-end;
 }
 
-/* Quick list (dashboard) */
+/* Quick list (dashboard) — con respiración para que el glow no corte el fondo */
 .quick-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
+  padding: 4px;
+  margin: -4px;
 }
 .quick-row {
   display: flex;
