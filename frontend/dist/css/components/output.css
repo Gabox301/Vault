@@ -1,0 +1,51 @@
+/* Vault — components/output.css — Output drawer (keep isolated; not in main view yet) */
+.output-drawer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 540px;
+  max-width: 100vw;
+  height: 340px;
+  background: #04060a;
+  border-left: 1px solid var(--border-bright);
+  border-top: 1px solid var(--border-bright);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  box-shadow:
+    -10px 0 50px rgba(0, 0, 0, 0.5),
+    0 0 30px var(--accent-glow);
+}
+.output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 15px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--accent-dim), transparent);
+}
+.output-meta {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  margin-left: 8px;
+}
+.output-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.output-body {
+  flex: 1;
+  margin: 0;
+  padding: 13px 15px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  color: #b8dcef;
+  line-height: 1.5;
+}
+.output-line-stderr {
+  color: #ff8a80;
+}

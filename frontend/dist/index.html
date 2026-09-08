@@ -3,35 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vault</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0c1015" />
+    <meta
+      name="description"
+      content="Vault — Command Center. Guarda y copia tus comandos favoritos sin ejecutarlos. Vanilla JS, Wails + Go."
+    />
+    <meta name="author" content="Vault" />
+    <!-- Performance: preconnect solo si inyectás CDN (fonts ya va por tokens.css @import) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>Vault — Command Center</title>
+    <!-- CSS: orquestador por capas (@layer tokens → motion) — ver css/tokens.css -->
     <link rel="stylesheet" href="./style.css" />
+    <!-- Icono: si Wails lo sirve desde assets, este es fallback -->
+    <link rel="icon" href="./appicon.png" type="image/png" />
   </head>
   <body>
+    <!-- A11y: skip link para navegación por teclado -->
+    <a href="#main-content" class="skip-link hidden">Saltar al contenido</a>
     <div id="app">
-      <!-- Command Palette (Ctrl/Cmd+K) -->
-      <div id="palette-overlay" class="palette-overlay hidden">
-        <div class="palette">
+      <!-- ================================================================
+           Command Palette — ui/palette.js
+           Rol dialog + aria-modal para lector; input = combobox
+           ================================================================ -->
+      <div
+        id="palette-overlay"
+        class="palette-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="palette-title"
+        aria-hidden="true"
+      >
+        <div class="palette" role="document">
+          <h2 id="palette-title" class="hidden">Buscar comandos</h2>
           <div class="palette-search">
-            <span class="icon">❯</span>
-            <input id="palette-input" type="text" placeholder="Buscar comandos..." autocomplete="off" />
-            <kbd>Ctrl K</kbd>
+            <span class="icon" aria-hidden="true">❯</span>
+            <input
+              id="palette-input"
+              type="text"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="palette-results"
+              aria-expanded="false"
+              aria-label="Buscar comandos"
+              placeholder="Buscar comandos..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <kbd aria-hidden="true">Ctrl K</kbd>
           </div>
-          <div id="palette-results" class="palette-results"></div>
-          <div class="palette-footer">
+          <div id="palette-results" class="palette-results" role="listbox" aria-label="Resultados"></div>
+          <div class="palette-footer" aria-hidden="true">
             <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
             <span><kbd>Enter</kbd> copiar</span>
             <span><kbd>Esc</kbd> cerrar</span>
           </div>
         </div>
       </div>
+      <!-- ================================================================
+           Shell — layout.css
+           ================================================================ -->
       <div class="layout">
-        <aside class="sidebar">
-          <div class="sidebar-logo">
-            <img src="./appicon.png" alt="Vault" />
+        <!-- Sidebar -->
+        <aside class="sidebar" aria-label="Navegación principal">
+          <div class="sidebar-logo" aria-hidden="true">
+            <img src="./appicon.png" alt="" width="128" height="128" decoding="async" />
           </div>
-          <div class="brand">
-            <span class="brand-mark">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div class="brand" aria-label="Vault Command Center">
+            <span class="brand-mark" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                focusable="false"
+              >
                 <path
                   d="M8 5L16 12L8 19"
                   stroke="#4fc8ff"
@@ -43,72 +90,132 @@
             </span>
             <span class="brand-word">VAULT<small>COMMAND&nbsp;CENTER</small></span>
           </div>
-          <nav class="nav">
-            <button class="nav-item active" data-view="dashboard">Panel</button>
-            <button class="nav-item" data-view="commands">Comandos</button>
-            <button class="nav-item" data-view="groups">Grupos</button>
+          <nav class="nav" aria-label="Secciones">
+            <button type="button" class="nav-item active" data-view="dashboard" aria-current="page">Panel</button>
+            <button type="button" class="nav-item" data-view="commands">Comandos</button>
+            <button type="button" class="nav-item" data-view="groups">Grupos</button>
           </nav>
-          <button id="open-palette-btn" class="palette-hint">
+          <button
+            type="button"
+            id="open-palette-btn"
+            class="palette-hint"
+            aria-haspopup="dialog"
+            aria-controls="palette-overlay"
+            aria-label="Abrir paleta de comandos (Ctrl K)"
+          >
             <span>❯ Buscar comandos…</span>
-            <kbd>Ctrl K</kbd>
+            <kbd aria-hidden="true">Ctrl K</kbd>
           </button>
         </aside>
-        <main class="content">
-          <section id="view-dashboard" class="view active">
+        <!-- Main -->
+        <main id="main-content" class="content" tabindex="-1">
+          <!-- Dashboard — views/dashboard.js -->
+          <section id="view-dashboard" class="view active" aria-labelledby="dashboard-heading" aria-live="polite">
             <header class="view-header">
-              <h1>Panel</h1>
+              <h1 id="dashboard-heading">Panel</h1>
             </header>
-            <div id="dashboard-stats" class="stats-grid"></div>
+            <div id="dashboard-stats" class="stats-grid" role="list" aria-label="Estadísticas"></div>
             <div class="grid-2 dashboard-main">
-              <div class="panel">
-                <h2>Últimos copiados</h2>
-                <div id="recent-copies-list" class="quick-list"></div>
+              <div class="panel" aria-labelledby="recent-heading">
+                <h2 id="recent-heading">Últimos copiados</h2>
+                <div id="recent-copies-list" class="quick-list" role="list"></div>
               </div>
-              <div class="panel">
-                <h2>Favoritos</h2>
-                <div id="favorites-list" class="quick-list"></div>
+              <div class="panel" aria-labelledby="fav-heading">
+                <h2 id="fav-heading">Favoritos</h2>
+                <div id="favorites-list" class="quick-list" role="list"></div>
               </div>
             </div>
-            <div class="panel dashboard-orphans-panel hidden" id="orphans-panel">
-              <h2>Sin grupo</h2>
+            <div class="panel dashboard-orphans-panel hidden" id="orphans-panel" aria-labelledby="orphans-heading">
+              <h2 id="orphans-heading">Sin grupo</h2>
               <p class="panel-hint log-style">comandos sin asignar — asignalos a un grupo</p>
-              <div id="orphans-list" class="quick-list"></div>
+              <div id="orphans-list" class="quick-list" role="list"></div>
             </div>
           </section>
-          <section id="view-commands" class="view">
+          <!-- Comandos — views/commands.js -->
+          <section id="view-commands" class="view" aria-labelledby="commands-heading" hidden>
             <header class="view-header">
-              <h1>Comandos</h1>
-              <button class="btn primary new-command-btn">+ Nuevo comando</button>
+              <h1 id="commands-heading">Comandos</h1>
+              <button
+                type="button"
+                class="btn primary new-command-btn"
+                aria-haspopup="dialog"
+                aria-controls="command-editor-overlay"
+              >
+                + Nuevo comando
+              </button>
             </header>
-            <div id="commands-list" class="command-list full"></div>
+            <div id="commands-list" class="command-list full" role="list" aria-label="Lista de comandos"></div>
           </section>
-          <section id="view-groups" class="view">
+          <!-- Grupos — views/groups.js -->
+          <section id="view-groups" class="view" aria-labelledby="groups-heading" hidden>
             <header class="view-header">
-              <h1>Grupos</h1>
-              <button id="new-group-btn" class="btn primary">+ Nuevo grupo</button>
+              <h1 id="groups-heading">Grupos</h1>
+              <button
+                type="button"
+                id="new-group-btn"
+                class="btn primary"
+                aria-haspopup="dialog"
+                aria-controls="group-editor-overlay"
+              >
+                + Nuevo grupo
+              </button>
             </header>
-            <div id="groups-list" class="project-list full"></div>
+            <div id="groups-list" class="project-list full" role="list" aria-label="Lista de grupos"></div>
           </section>
         </main>
       </div>
-      <!-- Command editor modal -->
-      <div id="command-editor-overlay" class="palette-overlay hidden">
-        <div class="palette editor-modal">
+      <!-- ================================================================
+           Overlays — components/modals.css + forms.css
+           Se mantienen como .palette-overlay para compatibilidad CSS/JS
+           pero con rol dialog + aria-modal. Migración futura a <dialog>
+           es trivial (solo cambiar div→dialog y usar showModal()).
+           ================================================================ -->
+      <!-- Command editor -->
+      <div
+        id="command-editor-overlay"
+        class="palette-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="editor-title"
+        aria-hidden="true"
+      >
+        <div class="palette editor-modal" role="document">
           <h3 id="editor-title">Nuevo comando</h3>
-          <div class="editor-body">
-            <label>Nombre<input id="ed-name" type="text" placeholder="Ejecutar pruebas" /></label>
-            <label>Descripción<textarea id="ed-description" rows="1" placeholder="Opcional"></textarea></label>
-            <label>Comando<textarea id="ed-command" rows="1" placeholder="go test ./..."></textarea></label>
-            <label class="field-block">
-              Grupo
+          <form class="editor-body" id="command-editor-form" onsubmit="return false;" novalidate>
+            <label for="ed-name"
+              >Nombre<input
+                id="ed-name"
+                name="name"
+                type="text"
+                placeholder="Ejecutar pruebas"
+                autocomplete="off"
+                required
+                aria-required="true"
+            /></label>
+            <label for="ed-description"
+              >Descripción<textarea id="ed-description" name="description" rows="1" placeholder="Opcional"></textarea>
+            </label>
+            <label for="ed-command"
+              >Comando<textarea
+                id="ed-command"
+                name="command"
+                rows="1"
+                placeholder="go test ./..."
+                required
+                aria-required="true"
+              ></textarea>
+            </label>
+            <label class="field-block" for="ed-group-trigger"
+              >Grupo
               <div class="custom-select" id="ed-group-select">
-                <input type="hidden" id="ed-group" value="" />
+                <input type="hidden" id="ed-group" name="groupId" value="" />
                 <button
                   type="button"
                   class="custom-select-trigger"
                   id="ed-group-trigger"
                   aria-haspopup="listbox"
                   aria-expanded="false"
+                  aria-controls="ed-group-menu"
                 >
                   <span class="custom-select-value" id="ed-group-label">(ninguno)</span>
                   <span class="custom-select-chevron" aria-hidden="true"></span>
@@ -116,54 +223,148 @@
                 <ul class="custom-select-menu" id="ed-group-menu" role="listbox" hidden></ul>
               </div>
             </label>
-            <label class="checkbox-row"><input id="ed-favorite" type="checkbox" /> Favorito</label>
-          </div>
+            <label class="checkbox-row" for="ed-favorite"
+              ><input id="ed-favorite" name="favorite" type="checkbox" /> Favorito</label
+            >
+          </form>
           <div class="param-actions">
-            <button id="ed-cancel" class="btn ghost">Cancelar</button>
-            <button id="ed-save" class="btn primary">Guardar</button>
+            <button type="button" id="ed-cancel" class="btn ghost">Cancelar</button>
+            <button type="button" id="ed-save" class="btn primary">Guardar</button>
           </div>
         </div>
       </div>
-      <!-- Group editor modal -->
-      <div id="group-editor-overlay" class="palette-overlay hidden">
-        <div class="palette editor-modal">
+      <!-- Group editor -->
+      <div
+        id="group-editor-overlay"
+        class="palette-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="group-editor-title"
+        aria-hidden="true"
+      >
+        <div class="palette editor-modal" role="document">
           <h3 id="group-editor-title">Nuevo grupo</h3>
-          <div class="editor-body">
-            <label>Nombre<input id="gr-name" type="text" placeholder="Git" /></label>
-            <label>Descripción<textarea id="gr-description" rows="1" placeholder="Opcional"></textarea></label>
-          </div>
+          <form class="editor-body" id="group-editor-form" onsubmit="return false;" novalidate>
+            <label for="gr-name"
+              >Nombre<input
+                id="gr-name"
+                name="name"
+                type="text"
+                placeholder="Git"
+                autocomplete="off"
+                required
+                aria-required="true"
+            /></label>
+            <label for="gr-description"
+              >Descripción<textarea id="gr-description" name="description" rows="1" placeholder="Opcional"></textarea>
+            </label>
+          </form>
           <div class="param-actions">
-            <button id="gr-cancel" class="btn ghost">Cancelar</button>
-            <button id="gr-save" class="btn primary">Guardar</button>
+            <button type="button" id="gr-cancel" class="btn ghost">Cancelar</button>
+            <button type="button" id="gr-save" class="btn primary">Guardar</button>
           </div>
         </div>
       </div>
-      <!-- Group viewer modal -->
-      <div id="group-viewer-overlay" class="palette-overlay hidden">
-        <div class="palette editor-modal">
+      <!-- Group viewer -->
+      <div
+        id="group-viewer-overlay"
+        class="palette-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="group-viewer-title"
+        aria-hidden="true"
+      >
+        <div class="palette editor-modal" role="document">
           <h3 id="group-viewer-title">Comandos del grupo</h3>
           <div class="editor-body">
-            <div id="group-viewer-list" class="quick-list"></div>
+            <div id="group-viewer-list" class="quick-list" role="list"></div>
           </div>
           <div class="param-actions">
-            <button id="group-viewer-close" class="btn ghost">Cerrar</button>
+            <button type="button" id="group-viewer-close" class="btn ghost">Cerrar</button>
           </div>
         </div>
       </div>
-      <!-- Alert / Confirm modal (reemplaza alert()/confirm() nativos) -->
-      <div id="confirm-overlay" class="palette-overlay hidden">
-        <div class="palette confirm-modal">
-          <div class="confirm-icon" id="confirm-icon">!</div>
-          <p id="confirm-message" class="confirm-message"></p>
+      <!-- Confirm / Alert — ui/confirm-modal.js reemplaza alert()/confirm() -->
+      <div
+        id="confirm-overlay"
+        class="palette-overlay hidden"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-message"
+        aria-hidden="true"
+      >
+        <div class="palette confirm-modal" role="document">
+          <div class="confirm-icon" id="confirm-icon" aria-hidden="true">!</div>
+          <p id="confirm-message" class="confirm-message" role="alert"></p>
           <div class="param-actions">
-            <button id="confirm-cancel" class="btn ghost hidden">Cancelar</button>
-            <button id="confirm-ok" class="btn primary">Aceptar</button>
+            <button type="button" id="confirm-cancel" class="btn ghost hidden">Cancelar</button>
+            <button type="button" id="confirm-ok" class="btn primary">Aceptar</button>
           </div>
         </div>
       </div>
-      <div id="toast" class="toast hidden"></div>
+      <!-- Live regions -->
+      <div id="toast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="app-tooltip" class="app-tooltip hidden" role="tooltip"></div>
+      <!-- ================================================================
+           Templates — sin costo runtime, clonables desde JS
+           Evitan concatenar HTML en JS (views/*) y centralizan markup
+           ================================================================ -->
+      <template id="tpl-command-row">
+        <div class="command-row" role="listitem">
+          <div class="command-main">
+            <span class="command-name"><span class="command-name-text"></span></span>
+            <span class="command-cmd"></span>
+            <span class="command-desc hidden"></span>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="btn fav-btn small" data-action="fav"></button>
+            <button type="button" class="btn copy-btn small" data-action="copy">Copiar</button>
+            <button type="button" class="btn edit-btn small" data-action="edit">Editar</button>
+            <button type="button" class="btn danger small del-btn" data-action="del">Eliminar</button>
+          </div>
+        </div>
+      </template>
+      <template id="tpl-quick-row">
+        <div class="quick-row" role="listitem">
+          <div class="command-main">
+            <span class="command-name"><span class="command-name-text"></span></span>
+            <span class="command-cmd"></span>
+            <span class="command-desc hidden"></span>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="btn copy-btn small quick-copy" data-action="copy">Copiar</button>
+            <button type="button" class="btn edit-btn small quick-edit hidden" data-action="edit">Editar</button>
+          </div>
+        </div>
+      </template>
+      <template id="tpl-group-row">
+        <div class="project-row" role="listitem">
+          <div class="command-main">
+            <span class="command-name"><span class="command-name-text"></span></span>
+            <span class="command-cmd"></span>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="btn view-btn small" data-action="view">Ver</button>
+            <button type="button" class="btn edit-btn small" data-action="edit">Editar</button>
+            <button type="button" class="btn danger small del-btn" data-action="del">Eliminar</button>
+          </div>
+        </div>
+      </template>
+      <template id="tpl-palette-section">
+        <div class="palette-section-label" role="presentation"></div>
+      </template>
+      <template id="tpl-palette-item">
+        <div class="palette-item" role="option" aria-selected="false">
+          <span class="palette-item-name"></span><span class="cmd"></span>
+        </div>
+      </template>
+      <noscript>
+        <div class="palette confirm-modal" style="margin: 24px auto; max-width: 560px">
+          <p class="confirm-message">Vault necesita JavaScript habilitado para funcionar.</p>
+        </div>
+      </noscript>
     </div>
-    <script src="./app.js"></script>
+    <!-- JS: módulo ES sin build — ver js/core, js/ui, js/views -->
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

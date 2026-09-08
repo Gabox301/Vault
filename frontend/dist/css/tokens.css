@@ -1,0 +1,56 @@
+/* Vault — css/tokens.css — Design tokens (single source of truth) */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Palette */
+  --bg: #05070a;
+  --bg-elevated: #0c1015;
+  --bg-panel: #0e131a;
+  --bg-hover: #16202b;
+  --border: #1e2c3a;
+  --border-bright: #3a5a78;
+  --text: #d7e4ef;
+  --text-dim: #6d8299;
+  --steel: #7fa8cf;
+  --accent: #4fc8ff;
+  --accent-2: #2f7fd6;
+  --accent-dim: #12324a;
+  --accent-glow: rgba(79, 200, 255, 0.45);
+  --success: #3ee089;
+  --success-dim: #0e2d20;
+  --danger: #ff5b56;
+  --danger-dim: #351212;
+  --warning: #ffb545;
+  --warning-dim: #362609;
+
+  /* Shape — flat cut (kept for reference) + neu radii */
+  --cut: 12px;
+  --cut-sm: 7px;
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 12px;
+
+  /* Typography */
+  --font-display: 'Orbitron', 'Rajdhani', sans-serif;
+  --font-body: 'Rajdhani', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* Neumorphism — derived */
+  --neu-base: var(--bg-elevated);
+  --neu-dark: color-mix(in srgb, black 45%, var(--neu-base));
+  --neu-light: color-mix(in srgb, white 6%, var(--neu-base));
+  --neu-out: 7px 7px 14px var(--neu-dark), -7px -7px 14px var(--neu-light);
+  --neu-in: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
+
+  /* Semantic surfaces (theme-aware) */
+  --surface-app: var(--neu-base);
+  --surface-panel: var(--neu-base);
+  --surface-card: var(--neu-base);
+  --elevation-out: var(--neu-out);
+  --elevation-in: var(--neu-in);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.12s;
+  --duration-normal: 0.22s;
+}

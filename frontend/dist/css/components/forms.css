@@ -1,0 +1,95 @@
+/* Vault — components/forms.css — Custom select + extras */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+.custom-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface-panel);
+  border-radius: var(--r-sm);
+  box-shadow: var(--elevation-in);
+  border: none;
+  padding: 9px 11px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.custom-select-trigger:focus {
+  outline: none;
+  box-shadow:
+    var(--elevation-in),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.custom-select-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-select-chevron {
+  flex-shrink: 0;
+  width: 12px;
+  height: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%234fc8ff' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 8px;
+  transition: transform 0.15s ease;
+}
+.custom-select.is-open .custom-select-chevron {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background: var(--surface-panel);
+  border-radius: var(--r-md);
+  box-shadow: var(--elevation-out);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 80;
+}
+.custom-select-menu.is-fixed {
+  position: fixed;
+  right: auto;
+}
+.custom-select-option {
+  padding: 9px 11px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  margin-bottom: 2px;
+}
+.custom-select-option:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+  box-shadow: var(--elevation-in);
+}
+.custom-select-option.is-selected {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-panel));
+  box-shadow: var(--elevation-in);
+}
+
+.input-with-button {
+  display: flex;
+  gap: 6px;
+}
+.input-with-button input {
+  flex: 1;
+}

@@ -1,0 +1,133 @@
+/* Vault — components/panels.css */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+  width: 100%;
+  max-width: 100%;
+}
+.stat-card {
+  background: var(--surface-card);
+  border-radius: var(--r-md);
+  box-shadow: var(--elevation-out);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text-dim);
+  opacity: 0.55;
+}
+.stat-card.stat-accent::before {
+  background: var(--accent);
+  opacity: 1;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.stat-card.stat-warning::before {
+  background: var(--warning);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 181, 69, 0.45);
+}
+.stat-card.stat-info::before {
+  background: var(--steel);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(127, 168, 207, 0.4);
+}
+.stat-card.stat-danger::before {
+  background: var(--danger);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 91, 86, 0.4);
+}
+.stat-card.stat-muted::before {
+  background: var(--text-dim);
+  opacity: 0.4;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+.stat-card.stat-accent .stat-value {
+  color: var(--accent);
+}
+.stat-card.stat-warning .stat-value {
+  color: var(--warning);
+}
+.stat-card.stat-info .stat-value {
+  color: var(--steel);
+}
+.stat-card.stat-danger .stat-value {
+  color: var(--danger);
+}
+.stat-card.stat-muted .stat-value {
+  color: var(--text-dim);
+}
+
+.panel {
+  background: var(--surface-panel);
+  border-radius: var(--r-lg);
+  box-shadow: var(--elevation-out);
+  padding: 18px;
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.panel h2 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel h2::before {
+  content: '▸';
+  color: var(--accent);
+}
+
+.panel-hint {
+  margin: -4px 0 12px;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  font-family: var(--font-body);
+}
+.panel-hint.log-style {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.panel-hint.log-style::before,
+.empty-hint.log-style::before {
+  content: '> ';
+  color: var(--accent);
+}
+
+.dashboard-orphans-panel {
+  margin-bottom: 12px;
+}

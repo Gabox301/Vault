@@ -1,0 +1,172 @@
+/* Vault — components/modals.css — editors + confirm */
+
+.param-modal,
+.editor-modal {
+  padding: 20px;
+}
+
+.palette.editor-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(85vh, 720px);
+  overflow: hidden;
+}
+.editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 2px;
+  margin-right: -2px;
+}
+.editor-modal .param-actions {
+  flex-shrink: 0;
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.param-modal h3,
+.editor-modal h3 {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Form fields */
+.editor-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.editor-modal input,
+.editor-modal textarea,
+.param-field input,
+.param-field textarea {
+  background: var(--surface-panel);
+  border-radius: var(--r-sm);
+  box-shadow: var(--elevation-in);
+  border: none;
+  padding: 9px 11px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  width: 100%;
+}
+.editor-modal textarea,
+.param-field textarea {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  line-height: 1.45;
+  resize: none;
+  overflow: hidden;
+  min-height: 38px;
+  max-height: 220px;
+  field-sizing: content;
+}
+:is(.editor-modal input, .editor-modal textarea, .param-field input, .param-field textarea):focus {
+  outline: none;
+  box-shadow:
+    var(--elevation-in),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.checkbox-row {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+.checkbox-row input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.param-field {
+  margin-bottom: 12px;
+}
+.param-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+.param-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Confirm */
+.confirm-modal {
+  width: 400px;
+  max-width: 90vw;
+  padding: 26px 22px 20px;
+  text-align: center;
+  border-radius: var(--r-lg);
+  background: var(--surface-panel);
+  box-shadow:
+    var(--elevation-out),
+    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.confirm-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--surface-panel);
+  border-radius: 50%;
+  box-shadow: var(--elevation-out);
+}
+.confirm-modal.danger .confirm-icon {
+  color: var(--danger);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.confirm-message {
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin: 0 0 4px;
+  white-space: pre-line;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.confirm-modal .param-actions {
+  justify-content: center;
+  margin-top: 18px;
+}

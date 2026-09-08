@@ -1,0 +1,127 @@
+/* Vault — components/buttons.css — BEM-ish, token-driven */
+.btn {
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--surface-panel);
+  box-shadow: var(--elevation-out);
+  color: var(--text);
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    filter var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+.btn:active {
+  box-shadow: var(--elevation-in);
+  transform: none;
+}
+.btn.small {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+.btn:hover {
+  filter: none;
+}
+
+/* Variants — single source, no duplication */
+.btn.primary {
+  color: #fff;
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.btn.primary:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+.btn.ghost {
+  color: var(--text-dim);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent);
+}
+.btn.ghost:hover {
+  background: var(--text);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+.btn.danger {
+  color: var(--danger);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.btn.danger:hover {
+  background: var(--danger);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+.btn.fav-btn {
+  color: var(--warning);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--warning) 40%, transparent);
+}
+.btn.fav-btn:hover {
+  background: var(--warning);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+.btn.copy-btn,
+.btn.view-btn {
+  color: var(--success);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--success) 40%, transparent);
+}
+.btn.copy-btn:hover,
+.btn.view-btn:hover {
+  background: var(--success);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+.btn.edit-btn {
+  color: var(--accent);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.btn.edit-btn:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--elevation-in);
+}
+
+/* State modifiers */
+.btn.primary.is-saved {
+  background: var(--success) !important;
+  color: #04121f !important;
+  box-shadow:
+    var(--elevation-in),
+    0 0 0 1px var(--success),
+    0 0 18px rgba(62, 224, 137, 0.45) !important;
+  pointer-events: none;
+}
+.btn.copy-btn.is-copied,
+.btn.quick-copy.is-copied {
+  color: #04121f !important;
+  background: var(--success) !important;
+  box-shadow:
+    var(--elevation-in),
+    0 0 0 1px var(--success),
+    0 0 16px rgba(62, 224, 137, 0.5) !important;
+  animation: copyPulse 0.45s var(--ease-out);
+}
+.btn.fav-btn.is-favorited {
+  animation: favFlash 0.4s ease;
+}

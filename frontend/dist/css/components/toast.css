@@ -1,0 +1,38 @@
+/* Vault — components/toast.css */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 11px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  z-index: 9999;
+  border-radius: var(--r-md);
+  background: var(--surface-panel);
+  box-shadow: var(--elevation-out);
+}
+.toast.toast-success {
+  color: var(--success);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--success) 45%, transparent);
+}
+.toast.toast-danger {
+  color: var(--danger);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent);
+}
+.toast.toast-warning {
+  color: var(--warning);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--warning) 45%, transparent);
+}
+.toast.toast-info {
+  color: var(--accent);
+  box-shadow:
+    var(--elevation-out),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}

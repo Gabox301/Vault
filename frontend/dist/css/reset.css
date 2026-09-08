@@ -1,0 +1,84 @@
+/* Vault — css/reset.css — Base + reset */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-app);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  overflow: hidden;
+  position: relative;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-elevated);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 0;
+}
+
+/* Utilities that must be early but low specificity */
+.hidden {
+  display: none !important;
+}
+
+/* A11y: skip link — visible solo al enfocar */
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10001;
+  padding: 8px 14px;
+  background: var(--bg-elevated);
+  color: var(--accent);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 0.15s var(--ease-out);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.skip-link.hidden {
+  display: block !important;
+  transform: translateY(-150%);
+}
+.skip-link.hidden:focus {
+  transform: translateY(0);
+}
+
+:where(kbd) {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-bright);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--accent);
+}

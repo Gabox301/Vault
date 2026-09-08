@@ -1,0 +1,177 @@
+/* Vault — components/palette.css */
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 4, 7, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 50;
+  transition:
+    opacity var(--duration-normal) ease,
+    backdrop-filter var(--duration-normal) ease;
+}
+.palette-overlay:not(.hidden) {
+  animation: paletteOverlayIn 0.28s var(--ease-out) both;
+}
+
+.palette {
+  width: 580px;
+  max-width: 90vw;
+  max-height: 70vh;
+  background: var(--surface-panel);
+  border-radius: var(--r-lg);
+  box-shadow:
+    var(--elevation-out),
+    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.palette-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.palette-search .icon {
+  color: var(--accent);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  position: relative;
+}
+.palette-search .icon::after {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.12em;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: terminalCursor 1.05s steps(1, end) infinite;
+}
+.palette-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  outline: none;
+}
+.palette-search input::placeholder {
+  color: var(--text-dim);
+}
+
+.palette-results {
+  overflow-y: auto;
+  padding: 8px;
+}
+.palette-section-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 10px 10px 5px;
+  letter-spacing: 0.1em;
+}
+
+.palette-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-left: 2px solid transparent;
+  min-width: 0;
+  overflow: hidden;
+}
+.palette-item > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+.palette-item.selected,
+.palette-item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+  border-left-color: var(--accent);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    0 0 12px color-mix(in srgb, var(--accent-glow) 55%, transparent);
+}
+.palette-item .cmd {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  flex-shrink: 1;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-footer {
+  display: flex;
+  gap: 16px;
+  padding: 9px 18px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+/* Entrance — single source (neu variant) */
+.palette.palette-enter {
+  animation: paletteBootNeu 0.42s var(--ease-out) both;
+}
+@keyframes paletteOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes paletteBootNeu {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(-10px);
+    box-shadow:
+      7px 7px 14px transparent,
+      -7px -7px 14px transparent,
+      0 0 0 0 transparent;
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.012) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    box-shadow:
+      var(--elevation-out),
+      0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 0 28px var(--accent-glow);
+  }
+}
+@keyframes terminalCursor {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
